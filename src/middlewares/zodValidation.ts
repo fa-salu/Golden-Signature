@@ -14,7 +14,7 @@ export function validateData(schema: AnyZodObject) {
           400
         );
       }
-      throw new CustomError("Error when validating data", 400);
+      throw new CustomError("Error when validating data", 500);
     }
   };
 }

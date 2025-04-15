@@ -46,7 +46,6 @@ export const globalErrorHandler = (
     return;
   }
 
-  // default error if none of the above match
   res.status(500).json({
     status: "fail",
     statusCode: 500,

@@ -19,7 +19,6 @@ const loginSchema = z.object({
         return { value: val, type: "username" as const };
       }
 
-      // Add error if none matched
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Username must be a valid email, phone number, or username",

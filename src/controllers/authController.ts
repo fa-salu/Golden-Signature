@@ -1,4 +1,3 @@
-// import { Request, Response } from "express";
 
 import { Request, Response } from "express";
 import { User } from "../models/user";
@@ -45,10 +44,10 @@ export const login = async (req: Request, res: Response) => {
     );
 
     res.cookie("accessToken", token, {
-      httpOnly: true, // prevents XSS attacks
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict", // prevents CSRF attack
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     const response = {

@@ -2,7 +2,6 @@ import type { CastError } from "mongoose";
 import { CustomError } from "./customError";
 
 const castErrorHandler = (err: CastError) => {
-  // cast error means that the value is not of the correct type defined in the schema
   const msg = `Invalid value for ${err.path}: ${err.value}!`;
   return new CustomError(msg, 400);
 };

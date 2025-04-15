@@ -1,4 +1,3 @@
-// import { Request, Response } from "express";
 
 import { Request, Response } from "express";
 import { User } from "../models/user";
@@ -9,18 +8,14 @@ import jwt from "jsonwebtoken";
 
 export const login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
-  // username: { value: string, type: 'email' | 'phone' | 'username' }
 
   let user;
   if (username.type === "email") {
     user = await User.findOne({ email: username.value });
-    console.log("email");
   } else if (username.type === "phone") {
     user = await User.findOne({ phoneNumber: username.value });
-    console.log("phone");
   } else {
     user = await User.findOne({ username: username.value });
-    console.log("username");
   }
 
   if (!user) {
@@ -47,6 +42,13 @@ export const login = async (req: Request, res: Response) => {
         expiresIn: "1d",
       }
     );
+
+    res.cookie("accessToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     const response = {
       userId: user._id,

@@ -1,5 +1,4 @@
 export class StandardResponse {
-  // all responses will extend this class
   statusCode: number;
   status: string;
   message: string;

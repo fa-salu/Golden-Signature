@@ -30,4 +30,113 @@ const loginSchema = z.object({
     .min(4, "Password is required and must be at least 4 characters"),
 });
 
-export { loginSchema };
+const routeSchema = z.object({
+  routeName: z.string().min(1, "Route name is required"),
+  asOfDate: z.date(),
+  notes: z.string().optional(),
+});
+
+const vehicleSchema = z.object({
+  vehicleNumber: z.string().min(1, "Vehicle number is required"),
+  vehicleName: z.string().min(1, "Vehicle name is required"),
+  assignedRoute: z.string().min(1, "Route is required"),
+  openingBalance: z.number().optional(),
+  balanceType: z.enum(["pay", "receive"]).optional(),
+  asOfDate: z.date(),
+  status: z.enum(["available", "in-use"]),
+});
+
+const partySchema = z.object({
+  partyName: z.string().min(1, "Party name is required"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  email: z.string().email("Invalid email"),
+  assignedRoute: z.string().min(1, "Route is required"),
+  address: z.string().min(1, "Address is required"),
+  type: z.enum(["sales", "purchase"]),
+  asOfDate: z.date(),
+  openingBalance: z.number(),
+  balanceType: z.enum(["pay", "receive"]),
+});
+
+const taxSchema = z.object({
+  rateName: z.string().min(1, "Rate name is required"),
+  rate: z.number().min(1, "Rate is required"),
+});
+
+const bankSchema = z.object({
+  accountName: z.string().min(1, "Account name is required"),
+  accountNumber: z.string().min(1, "Account number is required"),
+  bankName: z.string().min(1, "Bank name is required"),
+  branchCode: z.string().min(1, "Branch code is required"),
+  openingBalance: z.number(),
+});
+
+const itemSchema = z.object({
+  code: z.string().min(1, "Item code is required"),
+  itemName: z.string().min(1, "Item name is required"),
+  itemType: z.enum(["product", "service"]),
+  category: z.string().min(1, "Category is required"),
+  purchaseRate: z.number().min(1, "Purchase rate is required"),
+  saleRate: z.number().min(1, "Sale rate is required"),
+  mrp: z.number().min(1, "MRP is required"),
+  openingStock: z.number().min(1, "Opening stock is required"),
+  taxRate: z.string().min(1, "Tax rate is required"),
+  asOfDate: z.date(),
+  notes: z.string().optional(),
+});
+
+const categorySchema = z.object({
+  categoryName: z.string().min(1, "Category name is required"),
+});
+
+const receiptSchema = z
+  .object({
+    receiptNumber: z.string().min(1, "Receipt number is required"),
+    date: z.date(),
+    party: z.string().min(1, "Party is required"),
+    amount: z.number().min(1, "Amount is required"),
+    paymentType: z.enum(["cash", "bank"]),
+    trxnId: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.paymentType === "bank" && !data.trxnId) {
+      ctx.addIssue({
+        path: ["trxnId"],
+        code: z.ZodIssueCode.custom,
+        message: "Transaction ID is required when payment type is bank",
+      });
+    }
+  });
+
+const paymentSchema = z
+  .object({
+    receiptNumber: z.string().min(1, "Receipt number is required"),
+    date: z.date(),
+    ledger: z.string().min(1, "Ledger is required"),
+    ledgerGroup: z.enum(["User", "Party", "Vehicle"]),
+    amount: z.number().min(1, "Amount is required"),
+    paymentType: z.enum(["cash", "bank"]),
+    trxnId: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.paymentType === "bank" && !data.trxnId) {
+      ctx.addIssue({
+        path: ["trxnId"],
+        code: z.ZodIssueCode.custom,
+        message: "Transaction ID is required when payment type is bank",
+      });
+    }
+  });
+
+export {
+  loginSchema,
+  routeSchema,
+  vehicleSchema,
+  partySchema,
+  taxSchema,
+  bankSchema,
+  itemSchema,
+  categorySchema,
+  receiptSchema,
+  paymentSchema,
+};

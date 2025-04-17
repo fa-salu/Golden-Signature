@@ -18,7 +18,7 @@ model User {
   emergencyNumber   String?
   address           String?
   role              Role
-  openingBal        Decimal
+  openingBal        Decimal?
   companyOpeningBal Decimal?
   image             String?
   status            Boolean
@@ -38,11 +38,78 @@ enum Role {
 }
 
 model Group {
-  id        Int      @id @default(autoincrement())
-  groupName String   @unique
+  id        Int       @id @default(autoincrement())
+  groupName String    @unique
   User      User[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Vehicle   Vehicle[]
+  Party Party[]
 
   @@map("group")
+}
+
+model Route {
+  id        Int       @id @default(autoincrement())
+  routeName String
+  location  String
+  asOfDate  DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Vehicle   Vehicle[]
+  Party Party[]
+
+  @@map("route")
+}
+
+model Vehicle {
+  id              Int      @id @default(autoincrement())
+  vehicleNo       String   @unique
+  vehicleName     String
+  status          Boolean
+  asOfDate        DateTime
+  assignedRouteId Int
+  groupId         Int
+  route           Route    @relation(fields: [assignedRouteId], references: [id])
+  group           Group    @relation(fields: [groupId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("vehicle")
+}
+
+model Party {
+  id              Int       @id @default(autoincrement())
+  partyName       String
+  phoneNumber     String    @unique
+  email           String    @unique
+  assignedRouteId Int
+  address         String
+  latitude        Decimal
+  longitude       Decimal
+  partyType       PartyType
+  routePriority   Int
+  asOfDate        DateTime
+  openingBal      Decimal
+  balanceType     BalanceType
+  status          Boolean
+  groupId         Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  route           Route     @relation(fields: [assignedRouteId], references: [id])
+  group           Group     @relation(fields: [groupId], references: [id])
+
+  @@map("party")
+}
+
+enum PartyType {
+  sale
+  purchase
+  sale_and_purchase
+}
+
+enum BalanceType {
+  receive
+  pay
 }

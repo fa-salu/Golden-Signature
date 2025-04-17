@@ -48,30 +48,34 @@ const userSchema = z.object({
 
 const routeSchema = z.object({
   routeName: z.string().min(1, "Route name is required"),
-  asOfDate: z.date(),
-  notes: z.string().optional(),
+  asOfDate: z.coerce.date(),
+  location: z.string().min(1, "Location is required"),
 });
 
 const vehicleSchema = z.object({
-  vehicleNumber: z.string().min(1, "Vehicle number is required"),
+  vehicleNo: z.string().min(1, "Vehicle number is required"),
   vehicleName: z.string().min(1, "Vehicle name is required"),
-  assignedRoute: z.string().min(1, "Route is required"),
-  openingBalance: z.number().optional(),
-  balanceType: z.enum(["pay", "receive"]).optional(),
-  asOfDate: z.date(),
-  status: z.enum(["available", "in-use"]),
+  assignedRouteId: z.number().min(1, "Route is required"),
+  groupId: z.number().min(1, "Group is required"),
+  asOfDate: z.coerce.date(),
+  status: z.boolean(),
 });
 
 const partySchema = z.object({
   partyName: z.string().min(1, "Party name is required"),
   phoneNumber: z.string().min(1, "Phone number is required"),
   email: z.string().email("Invalid email"),
-  assignedRoute: z.string().min(1, "Route is required"),
+  assignedRouteId: z.number(),
   address: z.string().min(1, "Address is required"),
-  type: z.enum(["sales", "purchase"]),
-  asOfDate: z.date(),
-  openingBalance: z.number(),
+  latitude: z.number(),
+  longitude: z.number(),
+  partyType: z.enum(["sale", "purchase", "sale_and_purchase"]),
+  routePriority: z.number(),
+  asOfDate: z.coerce.date(),
+  openingBal: z.number(),
   balanceType: z.enum(["pay", "receive"]),
+  status: z.boolean(),
+  groupId: z.number(),
 });
 
 const taxSchema = z.object({
@@ -147,6 +151,7 @@ const paymentSchema = z
 const groupSchema = z.object({
   groupName: z.string().min(1, "Group name must be at least 1 character long"),
 });
+  
 
 export {
   loginSchema,

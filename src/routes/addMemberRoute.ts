@@ -10,9 +10,9 @@ const router = express.Router();
 
 router.post(
   "/members/add",
-  validateData(userSchema),
-  authorizeRoles("admin"),
   verifyToken,
+  authorizeRoles("admin"),
+  validateData(userSchema),
   errorCatch(addMember)
 );
 

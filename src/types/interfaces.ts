@@ -6,6 +6,7 @@ export type UserRole = "admin" | "manager" | "salesman" | "accountant";
 export interface CustomRequest extends Request {
   user?: {
     id: string;
+    role: UserRole;
   } & JwtPayload;
 }
 

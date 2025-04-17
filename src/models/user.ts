@@ -10,7 +10,8 @@ interface IUser extends Document {
   role: string;
   status?: string;
   address?: string;
-  isActive: boolean;
+  group: string;
+  isDelete: boolean;
 }
 
 const userSchema: Schema = new Schema(
@@ -58,7 +59,12 @@ const userSchema: Schema = new Schema(
       type: String,
       required: false,
     },
-    isActive: {
+    group: {
+      type: String,
+      ref: "Group",
+      default: "User",
+    },
+    isDelete: {
       type: Boolean,
       default: true,
       required: true,

@@ -35,15 +35,19 @@ const userSchema = z.object({
   name: z.string().optional(),
   email: z.string().email("Invalid email format"),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
+  emergencyNumber: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits"),
   password: z.string().min(4, "Password must be at least 4 characters"),
   role: z.enum(["admin", "manager", "salesman", "accountant"], {
     errorMap: () => ({
       message: "Role must be one of: admin, manager, salesman, accountant",
     }),
   }),
-  status: z.enum(["active", "inactive"]).optional().default("active"),
+  status: z.boolean(),
   address: z.string().optional(),
   image: z.string().optional(),
+  groupId: z.number(),
 });
 
 const routeSchema = z.object({
@@ -144,6 +148,10 @@ const paymentSchema = z
     }
   });
 
+const groupSchema = z.object({
+  groupName: z.string().min(1, "Group name must be at least 1 character long"),
+});
+
 export {
   loginSchema,
   userSchema,
@@ -156,6 +164,5 @@ export {
   categorySchema,
   receiptSchema,
   paymentSchema,
+  groupSchema,
 };
-
-

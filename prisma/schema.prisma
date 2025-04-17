@@ -23,7 +23,7 @@ model User {
   image             String
   status            Boolean
   groupId           Int
-  group             Group    @relation(fields: [groupId], references: [id])   
+  group             Group    @relation(fields: [groupId], references: [id])
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -39,8 +39,8 @@ enum Role {
 
 model Group {
   id        Int      @id @default(autoincrement())
-  groupName String
-  User User[]
+  groupName String   @unique
+  User      User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

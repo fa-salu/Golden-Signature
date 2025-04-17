@@ -15,7 +15,7 @@ model User {
   email             String   @unique
   phoneNumber       String   @unique
   password          String
-  emergencyNumber   String?  @unique
+  emergencyNumber   String?
   address           String?
   role              Role
   openingBal        Decimal?

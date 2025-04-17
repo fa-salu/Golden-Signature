@@ -1,28 +1,45 @@
-import type { CastError } from "mongoose";
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 import { CustomError } from "./customError";
 
-const castErrorHandler = (err: CastError) => {
-  const msg = `Invalid value for ${err.path}: ${err.value}!`;
+const prismaNotFoundHandler = (err: PrismaClientKnownRequestError) => {
+  const msg = `Record not found!`;
+  return new CustomError(msg, 404);
+};
+
+const prismaValidationHandler = (err: PrismaClientValidationError) => {
+  const msg = `Validation error: ${
+    err.message.split("\n").pop() || "Invalid input data"
+  }`;
   return new CustomError(msg, 400);
 };
 
-const duplicateKeyErrorHandler = (err: {
-  keyValue: Record<string, string>;
-}) => {
-  const field = Object.keys(err.keyValue)[0];
-  const value = err.keyValue[field];
+const prismaUniqueConstraintHandler = (err: PrismaClientKnownRequestError) => {
+  const matches = err.message.match(
+    /Unique constraint failed on the fields: \(`([^`]+)`\)/
+  );
+  const field = matches?.[1] || "field";
 
-  return new CustomError(`${value} already exists!`, 400);
+  return new CustomError(`A record with this ${field} already exists!`, 400);
 };
 
-const validationErrorHandler = (err: {
-  errors: { [key: string]: { message: string } };
-}) => {
-  const errors = Object.values(err.errors).map((val) => val.message);
-  const errorMessages = errors.join(". ");
-  const msg = `Invalid input data: ${errorMessages}`;
+const prismaForeignKeyHandler = (err: PrismaClientKnownRequestError) => {
+  const matches = err.message.match(
+    /Foreign key constraint failed on the field: \(`([^`]+)`\)/
+  );
+  const field = matches?.[1] || "reference";
 
-  return new CustomError(msg, 400);
+  return new CustomError(
+    `Invalid ${field} reference. The referenced record may not exist.`,
+    400
+  );
 };
 
-export { castErrorHandler, duplicateKeyErrorHandler, validationErrorHandler };
+export {
+  prismaNotFoundHandler,
+  prismaValidationHandler,
+  prismaUniqueConstraintHandler,
+  prismaForeignKeyHandler,
+};

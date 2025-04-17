@@ -11,12 +11,14 @@ export const addMember = async (req: Request, res: Response) => {
     name,
     email,
     phoneNumber,
+    emergencyNumber,
     password,
     role,
     address,
     image,
     groupId,
-    emergencyNumber,
+    openingBal,
+    companyOpeningBal,
   } = req.body;
 
   if (!username || !email || !phoneNumber || !password || !role || !groupId) {
@@ -49,113 +51,148 @@ export const addMember = async (req: Request, res: Response) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-   const newUser = await prisma.user.create({
-     data: {
-       username,
-       name,
-       email,
-       phoneNumber,
-       emergencyNumber,
-       password: hashedPassword,
-       role,
-       address,
-       image,
-       status: true,
-       groupId: Number(groupId),
-       openingBal: 0,
-     },
-   });
+  const newUser = await prisma.user.create({
+    data: {
+      username,
+      name,
+      email,
+      phoneNumber,
+      emergencyNumber: emergencyNumber || null,
+      password: hashedPassword,
+      role,
+      address,
+      image,
+      status: true,
+      groupId: groupId,
+      openingBal: openingBal || 0,
+      companyOpeningBal: companyOpeningBal || 0,
+    },
+  });
 
-   const userResponse = {
-     userId: newUser.id,
-     username: newUser.username,
-     name: newUser.name,
-     email: newUser.email,
-     phoneNumber: newUser.phoneNumber,
-     role: newUser.role,
-     status: newUser.status,
-     address: newUser.address,
-     image: newUser.image,
-     groupId: newUser.groupId,
-   };
+  const userResponse = {
+    userId: newUser.id,
+    username: newUser.username,
+    name: newUser.name,
+    email: newUser.email,
+    phoneNumber: newUser.phoneNumber,
+    role: newUser.role,
+    status: newUser.status,
+    address: newUser.address,
+    image: newUser.image,
+    groupId: newUser.groupId,
+  };
 
   res
     .status(201)
     .json(new StandardResponse("Member added successfully", userResponse, 201));
 };
 
-// export const updateMember = async (req: CustomRequest, res: Response) => {
-//   const id = req.user?.id;
-//   const {
-//     username,
-//     name,
-//     email,
-//     phoneNumber,
-//     password,
-//     role,
-//     address,
-//     image,
-//     status,
-//   } = req.body;
+export const updateMember = async (req: CustomRequest, res: Response) => {
+  const id = req.user?.id;
+  const {
+    username,
+    name,
+    email,
+    phoneNumber,
+    emergencyNumber,
+    password,
+    role,
+    address,
+    image,
+    status,
+    groupId,
+    openingBal,
+    companyOpeningBal,
+  } = req.body;
 
-//   const userToUpdate = await User.findById(id);
-//   if (!userToUpdate) {
-//     throw new CustomError("User not found", 404);
-//   }
+  const userToUpdate = await prisma.user.findUnique({
+    where: { id: id },
+  });
 
-//   const duplicateUser = await User.findOne({
-//     $or: [
-//       { username, _id: { $ne: id } },
-//       { email, _id: { $ne: id } },
-//       { phoneNumber, _id: { $ne: id } },
-//     ],
-//   });
-//   if (duplicateUser) {
-//     if (duplicateUser.username === username) {
-//       throw new CustomError("Username already exists", 400);
-//     }
-//     if (duplicateUser.email === email) {
-//       throw new CustomError("Email already exists", 400);
-//     }
-//     if (duplicateUser.phoneNumber === phoneNumber) {
-//       throw new CustomError("Phone number already exists", 400);
-//     }
-//   }
-//   const validRoles = ["admin", "manager", "salesman", "accountant"];
-//   if (role && !validRoles.includes(role)) {
-//     throw new CustomError("Invalid role provided", 400);
-//   }
-//   const validStatuses = ["active", "inactive"];
-//   if (status && !validStatuses.includes(status)) {
-//     throw new CustomError("Invalid status provided", 400);
-//   }
+  if (!userToUpdate) {
+    throw new CustomError("User not found", 404);
+  }
 
-//   const updateData: any = {};
-//   if (username) updateData.username = username;
-//   if (name) updateData.name = name;
-//   if (email) updateData.email = email;
-//   if (phoneNumber) updateData.phoneNumber = phoneNumber;
-//   if (role) updateData.role = role;
-//   if (address) updateData.address = address;
-//   if (image) updateData.image = image;
-//   if (status) updateData.status = status;
+  if (username) {
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    });
+    console.log("id", id);
+    if (existingUsername && existingUsername.id !== id) {
+      throw new CustomError("Username already exists", 400);
+    }
+  }
 
-//   if (password) {
-//     const salt = await bcrypt.genSalt(10);
-//     updateData.password = await bcrypt.hash(password, salt);
-//   }
+  if (email) {
+    const existingEmail = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (existingEmail && existingEmail.id !== id) {
+      throw new CustomError("Email already exists", 400);
+    }
+  }
 
-//   const updatedUser = await User.findByIdAndUpdate(
-//     id,
-//     { $set: updateData },
-//     { new: true, runValidators: true }
-//   ).select("-password");
+  if (phoneNumber) {
+    const existingPhone = await prisma.user.findUnique({
+      where: { phoneNumber },
+    });
+    if (existingPhone && existingPhone.id !== id) {
+      throw new CustomError("Phone number already exists", 400);
+    }
+  }
 
-//   if (!updatedUser) {
-//     throw new CustomError("Failed to update user", 500);
-//   }
+  const validRoles = ["admin", "manager", "salesman", "accountant"];
+  if (role && !validRoles.includes(role)) {
+    throw new CustomError("Invalid role provided", 400);
+  }
 
-//   res
-//     .status(200)
-//     .json(new StandardResponse("Member updated successfully", updatedUser));
-// };
+  if (status !== undefined && typeof status !== "boolean") {
+    throw new CustomError("Invalid status provided", 400);
+  }
+
+  const updateData: any = {};
+
+  if (username) updateData.username = username;
+  if (name) updateData.name = name;
+  if (email) updateData.email = email;
+  if (phoneNumber) updateData.phoneNumber = phoneNumber;
+  if (emergencyNumber !== undefined)
+    updateData.emergencyNumber = emergencyNumber;
+  if (role) updateData.role = role;
+  if (address !== undefined) updateData.address = address;
+  if (image !== undefined) updateData.image = image;
+  if (status !== undefined) updateData.status = status;
+  if (groupId) updateData.groupId = groupId;
+  if (openingBal !== undefined) updateData.openingBal = openingBal;
+  if (companyOpeningBal !== undefined)
+    updateData.companyOpeningBal = companyOpeningBal;
+
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+    updateData.password = await bcrypt.hash(password, salt);
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: id },
+    data: updateData,
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      email: true,
+      phoneNumber: true,
+      emergencyNumber: true,
+      role: true,
+      status: true,
+      address: true,
+      image: true,
+      groupId: true,
+      openingBal: true,
+      companyOpeningBal: true,
+    },
+  });
+
+  res
+    .status(200)
+    .json(new StandardResponse("Member updated successfully", updatedUser));
+};

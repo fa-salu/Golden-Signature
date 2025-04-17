@@ -1,9 +1,14 @@
 import type { NextFunction, Request, Response } from "express";
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from "@prisma/client/runtime/library";
 import { CustomError } from "../utils/error/customError";
 import {
-  castErrorHandler,
-  duplicateKeyErrorHandler,
-  validationErrorHandler,
+  prismaNotFoundHandler,
+  prismaValidationHandler,
+  prismaUniqueConstraintHandler,
+  prismaForeignKeyHandler,
 } from "../utils/error/handleErrors";
 
 const errorResponse = (error: CustomError, res: Response) => {
@@ -28,20 +33,28 @@ export const globalErrorHandler = (
     return;
   }
 
-  if (error.name === "CastError") {
-    const castError = castErrorHandler(error);
-    errorResponse(castError, res);
-    return;
+  if (error instanceof PrismaClientKnownRequestError) {
+    if (error.code === "P2025") {
+      const notFoundError = prismaNotFoundHandler(error);
+      errorResponse(notFoundError, res);
+      return;
+    }
+
+    if (error.code === "P2002") {
+      const uniqueConstraintError = prismaUniqueConstraintHandler(error);
+      errorResponse(uniqueConstraintError, res);
+      return;
+    }
+
+    if (error.code === "P2003") {
+      const foreignKeyError = prismaForeignKeyHandler(error);
+      errorResponse(foreignKeyError, res);
+      return;
+    }
   }
 
-  if (error.code === 11000) {
-    const duplicateKeyError = duplicateKeyErrorHandler(error);
-    errorResponse(duplicateKeyError, res);
-    return;
-  }
-
-  if (error.name === "ValidationError") {
-    const validationError = validationErrorHandler(error);
+  if (error instanceof PrismaClientValidationError) {
+    const validationError = prismaValidationHandler(error);
     errorResponse(validationError, res);
     return;
   }

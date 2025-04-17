@@ -15,12 +15,12 @@ model User {
   email             String   @unique
   phoneNumber       String   @unique
   password          String
-  emergencyNumber   String   @unique
-  address           String
+  emergencyNumber   String?
+  address           String?
   role              Role
   openingBal        Decimal
   companyOpeningBal Decimal?
-  image             String
+  image             String?
   status            Boolean
   groupId           Int
   group             Group    @relation(fields: [groupId], references: [id])

@@ -32,22 +32,18 @@ const loginSchema = z.object({
 
 const userSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
-  name: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email format"),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
-  emergencyNumber: z
-    .string()
-    .min(10, "Phone number must be at least 10 digits"),
+  emergencyNumber: z.string().min(10).optional(),
   password: z.string().min(4, "Password must be at least 4 characters"),
-  role: z.enum(["admin", "manager", "salesman", "accountant"], {
-    errorMap: () => ({
-      message: "Role must be one of: admin, manager, salesman, accountant",
-    }),
-  }),
-  status: z.boolean(),
+  role: z.enum(["admin", "manager", "salesman", "accountant"]),
+  status: z.boolean().default(true),
   address: z.string().optional(),
   image: z.string().optional(),
   groupId: z.number(),
+  openingBal: z.string().optional(),
+  companyOpeningBal: z.string().optional(),
 });
 
 const routeSchema = z.object({

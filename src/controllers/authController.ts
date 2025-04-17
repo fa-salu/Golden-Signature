@@ -1,22 +1,28 @@
-
 import { Request, Response } from "express";
 import { User } from "../models/user";
 import { StandardResponse } from "../utils/standardResponse";
 import { CustomError } from "../utils/error/customError";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { loginSchema } from "../utils/zodSchema";
 
 export const login = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
-
+  const parsed = loginSchema.parse(req.body);
+  console.log("parse", parsed);
+  const { username, password } = parsed;
+  console.log("body", username, password);
+  console.log("type", username.type);
   let user;
   if (username.type === "email") {
+    console.log("emm");
     user = await User.findOne({ email: username.value });
   } else if (username.type === "phone") {
     user = await User.findOne({ phoneNumber: username.value });
   } else {
     user = await User.findOne({ username: username.value });
   }
+
+  console.log("user", user);
 
   if (!user) {
     throw new CustomError("User not found", 400);
@@ -28,7 +34,7 @@ export const login = async (req: Request, res: Response) => {
       throw new CustomError("Invalid credentials", 400);
     }
 
-    if (!user.isActive) {
+    if (user.isDelete) {
       throw new CustomError("User deactivated", 400, "USER_DEACTIVATED");
     }
 

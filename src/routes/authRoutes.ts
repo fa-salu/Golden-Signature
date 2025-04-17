@@ -6,8 +6,6 @@ import { login } from "../controllers/authController";
 
 const router = express.Router();
 
-//Register user
-// router.post("/register", validateData(registerSchema), errorCatch(register));
 router.post("/login", validateData(loginSchema), errorCatch(login));
 
 export default router;

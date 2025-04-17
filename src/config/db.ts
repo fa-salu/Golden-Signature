@@ -1,15 +1,5 @@
-import mongoose from "mongoose";
-import dotenv from "dotenv";
+  import {PrismaClient} from '../../generated/prisma/client'
 
-dotenv.config();
+  const prisma = new PrismaClient();
 
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI as string);
-    console.log("MongoDB connected");
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-export default connectDB;
+  export default prisma;

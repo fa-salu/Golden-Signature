@@ -1,29 +1,29 @@
 import { Request, Response } from "express";
-import { User } from "../models/user";
 import { StandardResponse } from "../utils/standardResponse";
 import { CustomError } from "../utils/error/customError";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { loginSchema } from "../utils/zodSchema";
+import prisma from "../config/db";
 
 export const login = async (req: Request, res: Response) => {
   const parsed = loginSchema.parse(req.body);
-  console.log("parse", parsed);
   const { username, password } = parsed;
-  console.log("body", username, password);
-  console.log("type", username.type);
+
   let user;
-  if (username.type === "email") {
-    console.log("emm");
-    user = await User.findOne({ email: username.value });
-  } else if (username.type === "phone") {
-    user = await User.findOne({ phoneNumber: username.value });
-  } else {
-    user = await User.findOne({ username: username.value });
-  }
-
-  console.log("user", user);
-
+   if (username.type === "email") {
+     user = await prisma.user.findUnique({
+       where: { email: username.value },
+     });
+   } else if (username.type === "phone") {
+     user = await prisma.user.findUnique({
+       where: { phoneNumber: username.value },
+     });
+   } else {
+     user = await prisma.user.findUnique({
+       where: { username: username.value },
+     });
+   }
   if (!user) {
     throw new CustomError("User not found", 400);
   }
@@ -34,13 +34,9 @@ export const login = async (req: Request, res: Response) => {
       throw new CustomError("Invalid credentials", 400);
     }
 
-    if (user.isDelete) {
-      throw new CustomError("User deactivated", 400, "USER_DEACTIVATED");
-    }
-
     const token = jwt.sign(
       {
-        id: user._id,
+        id: user.id,
         role: user.role,
       },
       process.env.JWT_SECRET_KEY!,
@@ -57,7 +53,7 @@ export const login = async (req: Request, res: Response) => {
     });
 
     const response = {
-      userId: user._id,
+      userId: user.id,
       name: user.name,
       username: user.username,
       email: user.email,

@@ -3,7 +3,7 @@ import { CustomError } from "../utils/error/customError";
 import prisma from "../config/db";
 import { StandardResponse } from "../utils/standardResponse";
 
-export const addGroup = async (req: Request, res: Response) => {
+export const createGroup = async (req: Request, res: Response) => {
     const { groupName } = req.body;
 
     if (!groupName || groupName.trim() === "") {

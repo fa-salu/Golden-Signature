@@ -1,27 +1,27 @@
 import express from "express";
+import { verifyToken } from "../middlewares/verifyToken";
 import { authorizeRoles } from "../middlewares/roleMiddleware";
 import { validateData } from "../middlewares/zodValidation";
+import { createTax, updateTax } from "../controllers/taxController";
 import { errorCatch } from "../utils/error/error.Catch";
-import { partySchema } from "../utils/zodSchema";
-import { createParty, updateParty } from "../controllers/partyController";
-import { verifyToken } from "../middlewares/verifyToken";
+import { taxSchema } from "../utils/zodSchema";
 
 const router = express.Router();
 
 router.post(
-  "/party/create",
+  "/tax/create",
   verifyToken,
   authorizeRoles("admin"),
-  validateData(partySchema),
-  errorCatch(createParty)
+  validateData(taxSchema),
+  errorCatch(createTax)
 );
 
 router.put(
-  "/party/update/:id",
+  "/tax/update/:id",
   verifyToken,
   authorizeRoles("admin"),
-  validateData(partySchema),
-  errorCatch(updateParty)
+  validateData(taxSchema),
+  errorCatch(updateTax)
 );
 
 export default router;

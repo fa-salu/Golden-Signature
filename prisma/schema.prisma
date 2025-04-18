@@ -57,7 +57,7 @@ model Route {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   Vehicle   Vehicle[]
-  Party Party[]
+  Party     Party[]
 
   @@map("route")
 }
@@ -75,14 +75,16 @@ model Vehicle {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  VehicleStock VehicleStock[]
+
   @@map("vehicle")
 }
 
 model Party {
-  id              Int       @id @default(autoincrement())
+  id              Int         @id @default(autoincrement())
   partyName       String
-  phoneNumber     String    @unique
-  email           String    @unique
+  phoneNumber     String      @unique
+  email           String      @unique
   assignedRouteId Int
   address         String
   latitude        Decimal
@@ -94,11 +96,12 @@ model Party {
   balanceType     BalanceType
   status          Boolean
   groupId         Int
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  route           Route     @relation(fields: [assignedRouteId], references: [id])
-  group           Group     @relation(fields: [groupId], references: [id])
+  route   Route     @relation(fields: [assignedRouteId], references: [id])
+  group   Group     @relation(fields: [groupId], references: [id])
+  Receipt Receipt[]
 
   @@map("party")
 }
@@ -112,4 +115,164 @@ enum PartyType {
 enum BalanceType {
   receive
   pay
+}
+
+model Bank {
+  id          Int         @id @default(autoincrement())
+  accountName String
+  bankName    String
+  accountNo   String      @unique
+  openingBal  Decimal
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  Receipt     Receipt[]
+  Payment     Payment[]
+  BankEntry   BankEntry[]
+
+  @@map("bank")
+}
+
+model Receipt {
+  id          Int         @id @default(autoincrement())
+  receiptNo   String      @unique
+  date        DateTime
+  partyId     Int
+  bankId      Int?
+  amount      Decimal
+  paymentType PaymentType
+  trxnId      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  party Party @relation(fields: [partyId], references: [id])
+  bank  Bank? @relation(fields: [bankId], references: [id])
+
+  @@map("receipt")
+}
+
+enum PaymentType {
+  cash
+  bank
+}
+
+model Payment {
+  id          Int         @id @default(autoincrement())
+  paymentNo   String      @unique
+  date        DateTime
+  payeeType   PayeeType
+  payeeId     Int
+  amount      Decimal
+  paymentType PaymentType
+  bankId      Int?
+  bank        Bank?       @relation(fields: [bankId], references: [id])
+  trxnId      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("payment")
+}
+
+enum PayeeType {
+  staff
+  party
+  vehicle
+  group
+}
+
+model BankEntry {
+  id         Int        @id @default(autoincrement())
+  trxnNumber String     @unique
+  date       DateTime
+  bankId     Int
+  bank       Bank       @relation(fields: [bankId], references: [id])
+  amount     Decimal
+  amountType AmountType
+  trxnId     String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("bankEntry")
+}
+
+enum AmountType {
+  deposit
+  withdraw
+}
+
+model Tax {
+  id            Int      @id @default(autoincrement())
+  taxName       String   @unique
+  taxPercentage Decimal
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  Item          Item[]
+
+  @@map("tax")
+}
+
+model Category {
+  id           Int      @id @default(autoincrement())
+  categoryName String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Item         Item[]
+
+  @@map("category")
+}
+
+model Item {
+  id           Int      @id @default(autoincrement())
+  itemCode     String   @unique
+  itemName     String
+  itemType     ItemType
+  categoryId   Int
+  category     Category @relation(fields: [categoryId], references: [id])
+  purchaseRate Decimal
+  saleRate     Decimal
+  mrp          Decimal
+  openingStock Int
+  minStock     Int
+  taxId        Int
+  tax          Tax      @relation(fields: [taxId], references: [id])
+  asOfDate     DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  VehicleStockItem VehicleStockItem[]
+
+  @@map("item")
+}
+
+enum ItemType {
+  product
+  service
+}
+
+model VehicleStock {
+  id        Int              @id @default(autoincrement())
+  stockNo   String           @unique
+  vehicleId Int
+  vehicle   Vehicle          @relation(fields: [vehicleId], references: [id])
+  date      DateTime
+  type      VehicleStockType
+
+  stockItems VehicleStockItem[]
+
+  @@map("vehicleStock")
+}
+
+model VehicleStockItem {
+  id             Int          @id @default(autoincrement())
+  itemId         Int
+  item           Item         @relation(fields: [itemId], references: [id])
+  quantity       Int
+  vehicleStockId Int
+  vehicleStock   VehicleStock @relation(fields: [vehicleStockId], references: [id])
+
+  @@map("vehicleStockItem")
+}
+
+enum VehicleStockType {
+  stock_in
+  stock_out
 }

@@ -60,3 +60,57 @@ export const createParty = async (req: Request, res: Response) => {
     .status(201)
     .json(new StandardResponse("Party created successfully", newParty, 201));
 };
+
+export const updateParty = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+    partyName,
+    phoneNumber,
+    email,
+    assignedRouteId,
+    address,
+    latitude,
+    longitude,
+    partyType,
+    routePriority,
+    asOfDate,
+    openingBal,
+    balanceType,
+    status,
+    groupId,
+  } = req.body;
+
+  const existingParty = await prisma.party.findUnique({
+    where: { id: Number(id) },
+  });
+
+  if (!existingParty) {
+    throw new CustomError("Party not found", 404);
+  }
+
+  const updatedParty = await prisma.party.update({
+    where: { id: Number(id) },
+    data: {
+      partyName,
+      phoneNumber,
+      email,
+      assignedRouteId,
+      address,
+      latitude,
+      longitude,
+      partyType,
+      routePriority,
+      asOfDate: new Date(asOfDate),
+      openingBal,
+      balanceType,
+      status,
+      groupId,
+    },
+  });
+
+  res
+    .status(200)
+    .json(
+      new StandardResponse("Party updated successfully", updatedParty, 200)
+    );
+};

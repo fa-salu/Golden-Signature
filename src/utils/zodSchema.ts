@@ -79,29 +79,29 @@ const partySchema = z.object({
 });
 
 const taxSchema = z.object({
-  rateName: z.string().min(1, "Rate name is required"),
-  rate: z.number().min(1, "Rate is required"),
+  taxName: z.string().min(1, "Rate name is required"),
+  taxPercentage: z.number().min(1, "Rate is required"),
 });
 
 const bankSchema = z.object({
   accountName: z.string().min(1, "Account name is required"),
-  accountNumber: z.string().min(1, "Account number is required"),
+  accountNo: z.string().min(1, "Account number is required"),
   bankName: z.string().min(1, "Bank name is required"),
-  branchCode: z.string().min(1, "Branch code is required"),
-  openingBalance: z.number(),
+  openingBal: z.number(),
 });
 
 const itemSchema = z.object({
-  code: z.string().min(1, "Item code is required"),
+  itemCode: z.string().min(1, "Item code is required"),
   itemName: z.string().min(1, "Item name is required"),
   itemType: z.enum(["product", "service"]),
-  category: z.string().min(1, "Category is required"),
+  categoryId: z.number().min(1, "Category is required"),
   purchaseRate: z.number().min(1, "Purchase rate is required"),
   saleRate: z.number().min(1, "Sale rate is required"),
   mrp: z.number().min(1, "MRP is required"),
   openingStock: z.number().min(1, "Opening stock is required"),
-  taxRate: z.string().min(1, "Tax rate is required"),
-  asOfDate: z.date(),
+  minStock: z.number().min(1, "Opening stock is required"),
+  taxId: z.number().min(1, "Tax rate is required"),
+  asOfDate: z.coerce.date(),
   notes: z.string().optional(),
 });
 
@@ -109,49 +109,55 @@ const categorySchema = z.object({
   categoryName: z.string().min(1, "Category name is required"),
 });
 
-const receiptSchema = z
-  .object({
-    receiptNumber: z.string().min(1, "Receipt number is required"),
-    date: z.date(),
-    party: z.string().min(1, "Party is required"),
-    amount: z.number().min(1, "Amount is required"),
-    paymentType: z.enum(["cash", "bank"]),
-    trxnId: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.paymentType === "bank" && !data.trxnId) {
-      ctx.addIssue({
-        path: ["trxnId"],
-        code: z.ZodIssueCode.custom,
-        message: "Transaction ID is required when payment type is bank",
-      });
-    }
-  });
+const receiptSchema = z.object({
+  receiptNo: z.string().min(1, "Receipt number is required"),
+  date: z.coerce.date(),
+  partyId: z.number().min(1, "Party is required"),
+  bankId: z.number().optional(),
+  amount: z.number().min(1, "Amount is required"),
+  paymentType: z.enum(["cash", "bank"]),
+  trxnId: z.string().optional(),
+});
 
-const paymentSchema = z
-  .object({
-    receiptNumber: z.string().min(1, "Receipt number is required"),
-    date: z.date(),
-    ledger: z.string().min(1, "Ledger is required"),
-    ledgerGroup: z.enum(["User", "Party", "Vehicle"]),
-    amount: z.number().min(1, "Amount is required"),
-    paymentType: z.enum(["cash", "bank"]),
-    trxnId: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.paymentType === "bank" && !data.trxnId) {
-      ctx.addIssue({
-        path: ["trxnId"],
-        code: z.ZodIssueCode.custom,
-        message: "Transaction ID is required when payment type is bank",
-      });
-    }
-  });
+const paymentSchema = z.object({
+  paymentNo: z.string().min(1, "Receipt number is required"),
+  date: z.coerce.date(),
+  payeeType: z.enum(["staff", "party", "vehicle", "group"]),
+  payeeId: z.number().min(1, "Payee is required"),
+  amount: z.number().min(1, "Amount is required"),
+  paymentType: z.enum(["cash", "bank"]),
+  bankId: z.number().optional(),
+  trxnId: z.string().optional(),
+});
 
 const groupSchema = z.object({
   groupName: z.string().min(1, "Group name must be at least 1 character long"),
 });
   
+
+const BankEntrySchema = z.object({
+  trxnNumber: z.string().min(1),
+  date: z.coerce.date(),
+  bankId: z.number(),
+  amount: z.number().min(1, "Amount is required"),
+  amountType: z.enum(["deposit", "withdraw"]),
+  trxnId: z.string().min(1, "Transaction ID is required"),
+});
+
+const vehicleStockSchema = z.object({
+  stockNo: z.string().min(1, "Stock number is required"),
+  vehicleId: z.number().int().positive("Vehicle ID must be a positive integer"),
+  date: z.coerce.date(),
+  type: z.enum(["stock_in", "stock_out"]),
+  stockItems: z
+    .array(
+      z.object({
+        itemId: z.number(),
+        quantity: z.number(),
+      })
+    )
+    .nonempty("At least one stock item is required"),
+});
 
 export {
   loginSchema,
@@ -166,4 +172,6 @@ export {
   receiptSchema,
   paymentSchema,
   groupSchema,
+  BankEntrySchema,
+  vehicleStockSchema,
 };

@@ -133,6 +133,7 @@ const paymentSchema = z.object({
 const groupSchema = z.object({
   groupName: z.string().min(1, "Group name must be at least 1 character long"),
 });
+  
 
 const BankEntrySchema = z.object({
   trxnNumber: z.string().min(1),

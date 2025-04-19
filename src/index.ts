@@ -19,6 +19,7 @@ import itemRoutes from "./routes/itemRoutes";
 import vehicleStockRoutes from "./routes/vehicleStockRoutes";
 import damageStockRoutes from "./routes/damageStockRoutes";
 import journalRoutes from "./routes/journalRoutes";
+import saleRoutes from "./routes/saleRoutes";
 
 dotenv.config();
 const app = express();
@@ -55,7 +56,8 @@ app.use(
   itemRoutes,
   vehicleStockRoutes,
   damageStockRoutes,
-  journalRoutes
+  journalRoutes,
+  saleRoutes
 );
 
 app.listen(PORT, () => {

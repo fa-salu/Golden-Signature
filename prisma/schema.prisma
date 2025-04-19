@@ -108,6 +108,7 @@ model Party {
 
   route   Route     @relation(fields: [assignedRouteId], references: [id])
   Receipt Receipt[]
+  Sale    Sale[]
 
   @@map("party")
 }
@@ -246,6 +247,7 @@ model Item {
 
   VehicleStockItem VehicleStockItem[]
   DamageStock      DamageStock[]
+  SaleItem         SaleItem[]
 
   @@map("item")
 }
@@ -320,4 +322,44 @@ model JournalParticular {
 enum JournalPaymentType {
   credit
   debit
+}
+
+model Sale {
+  id          Int         @id @default(autoincrement())
+  invoiceNo   String      @unique
+  date        DateTime
+  partyId     Int
+  discount    Decimal     
+  taxAmount   Decimal
+  totalAmount Decimal
+  grandTotal  Decimal
+  received    Decimal
+  paymentType PaymentType
+  trxnId      String? 
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  party     Party      @relation(fields: [partyId], references: [id])
+  saleItems SaleItem[]
+
+  @@map("sale")
+}
+
+model SaleItem {
+  id          Int      @id @default(autoincrement())
+  saleId      Int
+  itemId      Int
+  quantity    Int
+  saleRate    Decimal
+  tax         Decimal
+  mrp         Decimal
+  totalAmount Decimal
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  item Item @relation(fields: [itemId], references: [id])
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@map("saleItem")
 }

@@ -4,7 +4,7 @@ import { StandardResponse } from "../utils/standardResponse";
 import { CustomError } from "../utils/error/customError";
 
 export const createVehicle = async (req: Request, res: Response) => {
-  const { vehicleNo, vehicleName, status, asOfDate, assignedRouteId, groupId } =
+  const { vehicleNo, vehicleName, status, asOfDate, assignedRouteId } =
     req.body;
 
   if (
@@ -12,8 +12,7 @@ export const createVehicle = async (req: Request, res: Response) => {
     !vehicleName ||
     typeof status !== "boolean" ||
     !asOfDate ||
-    !assignedRouteId ||
-    !groupId
+    !assignedRouteId
   ) {
     throw new CustomError("All fields are required", 400);
   }
@@ -31,9 +30,6 @@ export const createVehicle = async (req: Request, res: Response) => {
   });
   if (!route) throw new CustomError("Assigned route not found", 404);
 
-  const group = await prisma.group.findUnique({ where: { id: groupId } });
-  if (!group) throw new CustomError("Group not found", 404);
-
   const newVehicle = await prisma.vehicle.create({
     data: {
       vehicleNo,
@@ -41,7 +37,6 @@ export const createVehicle = async (req: Request, res: Response) => {
       status,
       asOfDate: new Date(asOfDate),
       assignedRouteId,
-      groupId,
     },
   });
 
@@ -54,7 +49,7 @@ export const createVehicle = async (req: Request, res: Response) => {
 
 export const updateVehicle = async (req: Request, res: Response) => {
   const vehicleId = parseInt(req.params.id);
-  const { vehicleNo, vehicleName, status, asOfDate, assignedRouteId, groupId } =
+  const { vehicleNo, vehicleName, status, asOfDate, assignedRouteId } =
     req.body;
 
   if (isNaN(vehicleId)) {
@@ -85,11 +80,6 @@ export const updateVehicle = async (req: Request, res: Response) => {
     if (!route) throw new CustomError("Assigned route not found", 404);
   }
 
-  if (groupId) {
-    const group = await prisma.group.findUnique({ where: { id: groupId } });
-    if (!group) throw new CustomError("Group not found", 404);
-  }
-
   const updatedVehicle = await prisma.vehicle.update({
     where: { id: vehicleId },
     data: {
@@ -98,7 +88,6 @@ export const updateVehicle = async (req: Request, res: Response) => {
       status,
       asOfDate: new Date(asOfDate),
       assignedRouteId,
-      groupId,
     },
   });
 

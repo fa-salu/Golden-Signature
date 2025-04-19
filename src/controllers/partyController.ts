@@ -18,7 +18,6 @@ export const createParty = async (req: Request, res: Response) => {
     openingBal,
     balanceType,
     status,
-    groupId,
   } = req.body;
 
   const existingPhone = await prisma.party.findUnique({
@@ -52,7 +51,6 @@ export const createParty = async (req: Request, res: Response) => {
       openingBal,
       balanceType,
       status,
-      groupId,
     },
   });
 
@@ -77,7 +75,6 @@ export const updateParty = async (req: Request, res: Response) => {
     openingBal,
     balanceType,
     status,
-    groupId,
   } = req.body;
 
   const existingParty = await prisma.party.findUnique({
@@ -104,7 +101,6 @@ export const updateParty = async (req: Request, res: Response) => {
       openingBal,
       balanceType,
       status,
-      groupId,
     },
   });
 

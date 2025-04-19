@@ -16,12 +16,21 @@ export const addMember = async (req: Request, res: Response) => {
     role,
     address,
     image,
-    groupId,
     openingBal,
     companyOpeningBal,
+    joiningDate,
+    salary,
   } = req.body;
 
-  if (!username || !email || !phoneNumber || !password || !role || !groupId) {
+  if (
+    !username ||
+    !email ||
+    !phoneNumber ||
+    !password ||
+    !role ||
+    !joiningDate ||
+    !salary
+  ) {
     throw new CustomError("Please provide all required fields", 400);
   }
 
@@ -63,9 +72,10 @@ export const addMember = async (req: Request, res: Response) => {
       address,
       image,
       status: true,
-      groupId: groupId,
       openingBal: openingBal || 0,
       companyOpeningBal: companyOpeningBal || 0,
+      joiningDate,
+      salary,
     },
   });
 
@@ -79,7 +89,8 @@ export const addMember = async (req: Request, res: Response) => {
     status: newUser.status,
     address: newUser.address,
     image: newUser.image,
-    groupId: newUser.groupId,
+    joiningDate: newUser.joiningDate,
+    salary: newUser.salary,
   };
 
   res
@@ -100,9 +111,10 @@ export const updateMember = async (req: CustomRequest, res: Response) => {
     address,
     image,
     status,
-    groupId,
     openingBal,
     companyOpeningBal,
+    joiningDate,
+    salary,
   } = req.body;
 
   const userToUpdate = await prisma.user.findUnique({
@@ -162,7 +174,6 @@ export const updateMember = async (req: CustomRequest, res: Response) => {
   if (address !== undefined) updateData.address = address;
   if (image !== undefined) updateData.image = image;
   if (status !== undefined) updateData.status = status;
-  if (groupId) updateData.groupId = groupId;
   if (openingBal !== undefined) updateData.openingBal = openingBal;
   if (companyOpeningBal !== undefined)
     updateData.companyOpeningBal = companyOpeningBal;
@@ -171,6 +182,9 @@ export const updateMember = async (req: CustomRequest, res: Response) => {
     const salt = await bcrypt.genSalt(10);
     updateData.password = await bcrypt.hash(password, salt);
   }
+
+  if (joiningDate) updateData.joiningDate = joiningDate;
+  if (salary) updateData.salary = salary;
 
   const updatedUser = await prisma.user.update({
     where: { id: id },
@@ -186,9 +200,10 @@ export const updateMember = async (req: CustomRequest, res: Response) => {
       status: true,
       address: true,
       image: true,
-      groupId: true,
       openingBal: true,
       companyOpeningBal: true,
+      joiningDate: true,
+      salary: true,
     },
   });
 

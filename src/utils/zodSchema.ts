@@ -41,9 +41,8 @@ const userSchema = z.object({
   status: z.boolean().default(true),
   address: z.string().optional(),
   image: z.string().optional(),
-  groupId: z.number(),
-  openingBal: z.string().optional(),
-  companyOpeningBal: z.string().optional(),
+  openingBal: z.number().optional(),
+  companyOpeningBal: z.number().optional(),
   joiningDate: z.coerce.date().optional(),
   salary: z.number().optional(),
 });
@@ -58,7 +57,6 @@ const vehicleSchema = z.object({
   vehicleNo: z.string().min(1, "Vehicle number is required"),
   vehicleName: z.string().min(1, "Vehicle name is required"),
   assignedRouteId: z.number().min(1, "Route is required"),
-  groupId: z.number().min(1, "Group is required"),
   asOfDate: z.coerce.date(),
   status: z.boolean(),
 });
@@ -77,7 +75,6 @@ const partySchema = z.object({
   openingBal: z.number(),
   balanceType: z.enum(["pay", "receive"]),
   status: z.boolean(),
-  groupId: z.number(),
 });
 
 const taxSchema = z.object({
@@ -134,6 +131,8 @@ const paymentSchema = z.object({
 
 const groupSchema = z.object({
   groupName: z.string().min(1, "Group name must be at least 1 character long"),
+  actAs: z.enum(["group", "ledger", "group_and_ledger"]),
+  underGroupId: z.number().optional(),
 });
 
 const BankEntrySchema = z.object({
@@ -167,6 +166,18 @@ const damageStockSchema = z.object({
   quantity: z.number(),
 });
 
+const journalSchema = z.object({
+  date: z.coerce.date(),
+  groupId: z.number(),
+  journalPaymentType: z.enum(["credit", "debit"]),
+  particulars: z.array(
+    z.object({
+      particular: z.string(),
+      amount: z.number(),
+    })
+  ),
+});
+
 export {
   loginSchema,
   userSchema,
@@ -183,4 +194,5 @@ export {
   BankEntrySchema,
   vehicleStockSchema,
   damageStockSchema,
+  journalSchema,
 };

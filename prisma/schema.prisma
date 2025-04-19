@@ -24,8 +24,6 @@ model User {
   joiningDate       DateTime?
   salary            Decimal?
   status            Boolean
-  groupId           Int
-  group             Group     @relation(fields: [groupId], references: [id])
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -40,15 +38,25 @@ enum Role {
 }
 
 model Group {
-  id        Int       @id @default(autoincrement())
-  groupName String    @unique
-  User      User[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Vehicle   Vehicle[]
-  Party     Party[]
+  id           Int       @id @default(autoincrement())
+  groupName    String
+  actAs        ActAsType
+  underGroupId Int?
+  underGroup   Group?    @relation("GroupParent", fields: [underGroupId], references: [id])
+  subGroups    Group[]   @relation("GroupParent") // Inverse relation (children)
+
+  Journal Journal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("group")
+}
+
+enum ActAsType {
+  group
+  ledger
+  group_and_ledger
 }
 
 model Route {
@@ -71,9 +79,7 @@ model Vehicle {
   status          Boolean
   asOfDate        DateTime
   assignedRouteId Int
-  groupId         Int
   route           Route    @relation(fields: [assignedRouteId], references: [id])
-  group           Group    @relation(fields: [groupId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -97,12 +103,10 @@ model Party {
   openingBal      Decimal
   balanceType     BalanceType
   status          Boolean
-  groupId         Int
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
   route   Route     @relation(fields: [assignedRouteId], references: [id])
-  group   Group     @relation(fields: [groupId], references: [id])
   Receipt Receipt[]
 
   @@map("party")
@@ -289,4 +293,31 @@ model DamageStock {
   quantity Int
 
   @@map("damageStock")
+}
+
+model Journal {
+  id                 Int                @id @default(autoincrement())
+  date               DateTime
+  groupId            Int
+  group              Group              @relation(fields: [groupId], references: [id])
+  journalPaymentType JournalPaymentType
+
+  particulars JournalParticular[]
+
+  @@map("journal")
+}
+
+model JournalParticular {
+  id         Int     @id @default(autoincrement())
+  particular String
+  amount     Decimal
+  journalId  Int
+  journal    Journal @relation(fields: [journalId], references: [id])
+
+  @@map("journalParticular")
+}
+
+enum JournalPaymentType {
+  credit
+  debit
 }

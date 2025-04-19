@@ -4,66 +4,89 @@ import prisma from "../config/db";
 import { StandardResponse } from "../utils/standardResponse";
 
 export const createGroup = async (req: Request, res: Response) => {
-    const { groupName } = req.body;
+  const { groupName, actAs, underGroupId } = req.body;
 
-    if (!groupName || groupName.trim() === "") {
-      throw new CustomError("Group name is required", 400);
-    }
+  if (!groupName || !actAs) {
+    throw new CustomError("Name and actAs are required", 400);
+  }
 
-     const existingGroup = await prisma.group.findUnique({
-       where: { groupName },
-     });
+  if ((actAs === "ledger" || actAs === "group_and_ledger") && !underGroupId) {
+    throw new CustomError(
+      "underGroupId is required when actAs is 'ledger' or 'group_and_ledger'",
+      400
+    );
+  }
 
-     if (existingGroup) {
-       throw new CustomError("Group name already exists", 400);
-     }
+  if (underGroupId) {
+    const underGroup = await prisma.group.findUnique({
+      where: { id: underGroupId },
+    });
+    if (!underGroup) throw new CustomError("Under group not found", 404);
+  }
 
-     const newGroup = await prisma.group.create({
-       data: {
-         groupName,
-       },
-     });
+  const newGroup = await prisma.group.create({
+    data: {
+      groupName,
+      actAs,
+      underGroupId: underGroupId || null,
+    },
+  });
 
-     res
-       .status(201)
-       .json(new StandardResponse("Group created successfully", newGroup, 201));
-}
+  res
+    .status(201)
+    .json(new StandardResponse("Group created successfully", newGroup, 201));
+};
 
 export const updateGroup = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { groupName } = req.body;
+  const { groupName, actAs, underGroupId } = req.body;
 
-  if (!groupName || groupName.trim() === "") {
-    throw new CustomError("Group name is required", 400);
+  if (!id || !groupName || !actAs) {
+    throw new CustomError("ID, name, and actAs are required", 400);
   }
 
-  const groupId = parseInt(id);
-  if (isNaN(groupId)) {
-    throw new CustomError("Invalid group ID", 400);
+  const validActAs = ["group", "ledger", "group_and_ledger"];
+  if (!validActAs.includes(actAs)) {
+    throw new CustomError(
+      `actAs must be one of: ${validActAs.join(", ")}`,
+      400
+    );
   }
 
-  const groupExists = await prisma.group.findUnique({
-    where: { id: groupId },
+  const existingGroup = await prisma.group.findUnique({
+    where: { id: Number(id) },
   });
 
-  if (!groupExists) {
+  if (!existingGroup) {
     throw new CustomError("Group not found", 404);
   }
 
-  const duplicateGroup = await prisma.group.findUnique({
-    where: { groupName },
-  });
+  if ((actAs === "ledger" || actAs === "group_and_ledger") && !underGroupId) {
+    throw new CustomError(
+      "underGroupId is required for selected actAs type",
+      400
+    );
+  }
 
-  if (duplicateGroup && duplicateGroup.id !== groupId) {
-    throw new CustomError("Group name already exists", 400);
+  if (underGroupId) {
+    const underGroup = await prisma.group.findUnique({
+      where: { id: underGroupId },
+    });
+    if (!underGroup) throw new CustomError("Under group not found", 404);
   }
 
   const updatedGroup = await prisma.group.update({
-    where: { id: groupId },
-    data: { groupName },
+    where: { id: Number(id) },
+    data: {
+      groupName,
+      actAs,
+      underGroupId: underGroupId || null,
+    },
   });
 
   res
     .status(200)
-    .json(new StandardResponse("Group updated successfully", updatedGroup));
+    .json(
+      new StandardResponse("Group updated successfully", updatedGroup, 200)
+    );
 };

@@ -44,6 +44,8 @@ const userSchema = z.object({
   groupId: z.number(),
   openingBal: z.string().optional(),
   companyOpeningBal: z.string().optional(),
+  joiningDate: z.coerce.date().optional(),
+  salary: z.number().optional(),
 });
 
 const routeSchema = z.object({
@@ -133,7 +135,6 @@ const paymentSchema = z.object({
 const groupSchema = z.object({
   groupName: z.string().min(1, "Group name must be at least 1 character long"),
 });
-  
 
 const BankEntrySchema = z.object({
   trxnNumber: z.string().min(1),
@@ -159,6 +160,13 @@ const vehicleStockSchema = z.object({
     .nonempty("At least one stock item is required"),
 });
 
+const damageStockSchema = z.object({
+  damageId: z.string().min(1, "Damage ID is required"),
+  date: z.coerce.date(),
+  itemId: z.number(),
+  quantity: z.number(),
+});
+
 export {
   loginSchema,
   userSchema,
@@ -174,4 +182,5 @@ export {
   groupSchema,
   BankEntrySchema,
   vehicleStockSchema,
+  damageStockSchema,
 };

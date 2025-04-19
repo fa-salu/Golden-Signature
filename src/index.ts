@@ -17,6 +17,7 @@ import taxRoutes from "./routes/taxRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import itemRoutes from "./routes/itemRoutes";
 import vehicleStockRoutes from "./routes/vehicleStockRoutes";
+import damageStockRoutes from "./routes/damageStockRoutes";
 
 dotenv.config();
 const app = express();
@@ -51,7 +52,8 @@ app.use(
   taxRoutes,
   categoryRoutes,
   itemRoutes,
-  vehicleStockRoutes
+  vehicleStockRoutes,
+  damageStockRoutes
 );
 
 app.listen(PORT, () => {

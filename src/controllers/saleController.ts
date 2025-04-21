@@ -130,7 +130,6 @@ export const updateSale = async (req: Request, res: Response) => {
     throw new CustomError("Sale not found", 404);
   }
 
-  // Check for duplicate invoice number (excluding current sale)
   const invoiceExists = await prisma.sale.findFirst({
     where: {
       invoiceNo,

@@ -7,7 +7,6 @@ export const createReceipt = async (req: Request, res: Response) => {
   const { receiptNo, date, partyId, amount, paymentType, bankId, trxnId } =
     req.body;
 
-  // Basic validations
   if (!receiptNo || !date || !partyId || !amount || !paymentType) {
     throw new CustomError("Missing required fields", 400);
   }
@@ -28,7 +27,6 @@ export const createReceipt = async (req: Request, res: Response) => {
   if (!partyExists) {
     throw new CustomError("Party not found", 404);
   }
-
 
   if (paymentType === "bank") {
     const bankExists = await prisma.bank.findUnique({
@@ -57,7 +55,6 @@ export const createReceipt = async (req: Request, res: Response) => {
       new StandardResponse("Receipt created successfully", newReceipt, 201)
     );
 };
-
 
 export const updateReceipt = async (req: Request, res: Response) => {
   const { id } = req.params;

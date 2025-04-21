@@ -3,27 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { globalErrorHandler } from "./middlewares/globalErrorHandler";
-import authRoutes from "./routes/authRoutes";
-import addMemberRoute from "./routes/addMemberRoute";
-import groupRoutes from "./routes/groupRoutes";
-import routeRoutes from "./routes/routeRoutes";
-import vehicleRoutes from "./routes/vehicleRoutes";
-import partyRoutes from "./routes/partyRoutes";
-import bankRoutes from "./routes/bankRoutes";
-import receiptRoutes from "./routes/receiptRoutes";
-import paymentRoutes from "./routes/paymentRoutes";
-import bankEntryRoutes from "./routes/bankEntryRoutes";
-import taxRoutes from "./routes/taxRoutes";
-import categoryRoutes from "./routes/categoryRoutes";
-import itemRoutes from "./routes/itemRoutes";
-import vehicleStockRoutes from "./routes/vehicleStockRoutes";
-import damageStockRoutes from "./routes/damageStockRoutes";
-import journalRoutes from "./routes/journalRoutes";
-import saleRoutes from "./routes/saleRoutes";
-import purchaseReturnRoutes from "./routes/purchaseReturnRoutes";
-import purchaseRoutes from "./routes/purchaseRoutes";
-import saleReturnRoutes from "./routes/saleReturnRoutes";
-import companyRoutes from "./routes/companyRoutes";
+import mainRoutes from "./routes";
 
 dotenv.config();
 const app = express();
@@ -43,30 +23,7 @@ app.get("/", (_req, res) => {
   res.send("Server is up and running...");
 });
 
-app.use("/api/auth", authRoutes);
-app.use(
-  "/api",
-  addMemberRoute,
-  groupRoutes,
-  routeRoutes,
-  vehicleRoutes,
-  partyRoutes,
-  bankRoutes,
-  receiptRoutes,
-  paymentRoutes,
-  bankEntryRoutes,
-  taxRoutes,
-  categoryRoutes,
-  itemRoutes,
-  vehicleStockRoutes,
-  damageStockRoutes,
-  journalRoutes,
-  saleRoutes,
-  purchaseReturnRoutes,
-  purchaseRoutes,
-  saleReturnRoutes,
-  companyRoutes
-);
+app.use("/api", mainRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

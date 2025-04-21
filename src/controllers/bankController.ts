@@ -30,7 +30,6 @@ export const createBank = async (req: Request, res: Response) => {
     );
 };
 
-
 export const updateBank = async (req: Request, res: Response) => {
   const bankId = Number(req.params.id);
   const { accountName, bankName, accountNo, openingBal } = req.body;
@@ -43,7 +42,6 @@ export const updateBank = async (req: Request, res: Response) => {
     throw new CustomError("Bank not found", 404);
   }
 
-  // If accountNo is being changed, check if it's already taken
   if (accountNo && accountNo !== existingBank.accountNo) {
     const accountExists = await prisma.bank.findUnique({
       where: { accountNo },

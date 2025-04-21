@@ -2,26 +2,26 @@ import express from "express";
 import { verifyToken } from "../middlewares/verifyToken";
 import { authorizeRoles } from "../middlewares/roleMiddleware";
 import { validateData } from "../middlewares/zodValidation";
-import { saleReturnSchema } from "../utils/zodSchema";
 import { errorCatch } from "../utils/error/error.Catch";
-import { createSaleReturn, updateSaleReturn } from "../controllers/saleReturnController";
+import { createPurchaseReturn, updatePurchaseReturn } from "../controllers/purchaseReturnController";
+import { purchaseReturnSchema } from "../utils/zodSchema";
 
 const router = express.Router();
 
 router.post(
-  "/salereturn/create",
+  "/purchasereturn/create",
   verifyToken,
   authorizeRoles("admin"),
-  validateData(saleReturnSchema),
-  errorCatch(createSaleReturn)
+  validateData(purchaseReturnSchema),
+  errorCatch(createPurchaseReturn)
 );
 
 router.put(
-  "/salereturn/update/:id",
+  "/purchasereturn/update/:id",
   verifyToken,
   authorizeRoles("admin"),
-  validateData(saleReturnSchema),
-  errorCatch(updateSaleReturn)
+  validateData(purchaseReturnSchema),
+  errorCatch(updatePurchaseReturn)
 );
 
 export default router;

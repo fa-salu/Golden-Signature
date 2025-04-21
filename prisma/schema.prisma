@@ -120,11 +120,13 @@ model Party {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
-  route      Route        @relation(fields: [assignedRouteId], references: [id])
-  Receipt    Receipt[]
-  Sale       Sale[]
-  Purchase   Purchase[]
-  SaleReturn SaleReturn[]
+  route          Route            @relation(fields: [assignedRouteId], references: [id])
+  Receipt        Receipt[]
+  Sale           Sale[]
+  Purchase       Purchase[]
+  SaleReturn     SaleReturn[]
+  PurchaseReturn PurchaseReturn[]
+  Estimate Estimate[]
 
   @@map("party")
 }
@@ -261,11 +263,13 @@ model Item {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  VehicleStockItem VehicleStockItem[]
-  DamageStock      DamageStock[]
-  SaleItem         SaleItem[]
-  PurchaseItem     PurchaseItem[]
-  SaleReturnItem   SaleReturnItem[]
+  VehicleStockItem   VehicleStockItem[]
+  DamageStock        DamageStock[]
+  SaleItem           SaleItem[]
+  PurchaseItem       PurchaseItem[]
+  SaleReturnItem     SaleReturnItem[]
+  PurchaseReturnItem PurchaseReturnItem[]
+  EstimateItem EstimateItem[]
 
   @@map("item")
 }
@@ -460,3 +464,80 @@ model SaleReturnItem {
 
   @@map("saleReturnItem")
 }
+
+model PurchaseReturn {
+  id          Int         @id @default(autoincrement())
+  invoiceNo   String      @unique
+  date        DateTime
+  partyId     Int
+  taxAmount   Decimal
+  totalAmount Decimal
+  grandTotal  Decimal
+  received    Decimal
+  paymentType PaymentType
+  trxnId      String?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  party               Party                @relation(fields: [partyId], references: [id])
+  purchaseReturnItems PurchaseReturnItem[]
+
+  @@map("purchaseReturn")
+}
+
+model PurchaseReturnItem {
+  id               Int      @id @default(autoincrement())
+  purchaseReturnId Int
+  itemId           Int
+  quantity         Int
+  purchaseRate     Decimal
+  tax              Decimal
+  mrp              Decimal
+  totalAmount      Decimal
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  item           Item           @relation(fields: [itemId], references: [id])
+  purchaseReturn PurchaseReturn @relation(fields: [purchaseReturnId], references: [id])
+
+  @@map("purchaseReturnItem")
+}
+
+model Estimate {
+  id          Int           @id @default(autoincrement())
+  invoiceNo   String        @unique
+  date        DateTime
+  partyId     Int
+  discount    Decimal
+  taxAmount   Decimal
+  totalAmount Decimal
+  grandTotal  Decimal
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  party        Party          @relation(fields: [partyId], references: [id])
+  estimateItems EstimateItem[]
+
+  @@map("estimate")
+}
+
+model EstimateItem {
+  id          Int      @id @default(autoincrement())
+  estimateId  Int
+  itemId      Int
+  quantity    Int
+  saleRate    Decimal
+  tax         Decimal
+  mrp         Decimal
+  totalAmount Decimal
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  estimate Estimate @relation(fields: [estimateId], references: [id])
+  item     Item     @relation(fields: [itemId], references: [id])
+
+  @@map("estimateItem")
+}
+

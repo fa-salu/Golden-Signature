@@ -202,6 +202,9 @@ const saleSchema = z.object({
   grandTotal: z.number(),
   received: z.number(),
   notes: z.string().optional(),
+  isApproved:z.boolean().optional(),
+  approvedBy:z.number().optional(),
+  bankId: z.number().optional(),
   saleItems: z.array(
     z.object({
       itemId: z.number(),

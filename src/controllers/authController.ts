@@ -11,19 +11,19 @@ export const login = async (req: Request, res: Response) => {
   const { username, password } = parsed;
 
   let user;
-   if (username.type === "email") {
-     user = await prisma.user.findUnique({
-       where: { email: username.value },
-     });
-   } else if (username.type === "phone") {
-     user = await prisma.user.findUnique({
-       where: { phoneNumber: username.value },
-     });
-   } else {
-     user = await prisma.user.findUnique({
-       where: { username: username.value },
-     });
-   }
+  if (username.type === "email") {
+    user = await prisma.user.findUnique({
+      where: { email: username.value },
+    });
+  } else if (username.type === "phone") {
+    user = await prisma.user.findUnique({
+      where: { phoneNumber: username.value },
+    });
+  } else {
+    user = await prisma.user.findUnique({
+      where: { username: username.value },
+    });
+  }
   if (!user) {
     throw new CustomError("User not found", 400);
   }

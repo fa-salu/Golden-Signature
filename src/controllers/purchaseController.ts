@@ -23,11 +23,11 @@ export const createPurchase = async (req: Request, res: Response) => {
     !invoiceNo ||
     !date ||
     !partyId ||
-    !discount  ||
+    !discount ||
     !taxAmount ||
     !totalAmount ||
-    !grandTotal  ||
-    !received  ||
+    !grandTotal ||
+    !received ||
     !paymentType ||
     !trxnId ||
     !purchaseItems ||
@@ -56,7 +56,6 @@ export const createPurchase = async (req: Request, res: Response) => {
     throw new CustomError("Party not found", 404);
   }
 
-  // Create purchase and nested items
   const newPurchase = await prisma.purchase.create({
     data: {
       invoiceNo,

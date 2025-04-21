@@ -78,7 +78,6 @@ export const updateVehicleStock = async (req: Request, res: Response) => {
     throw new CustomError("Vehicle stock not found", 404);
   }
 
-  // validate vehicle exists if vehicleId is changing
   if (vehicleId && vehicleId !== vehicleStock.vehicleId) {
     const vehicle = await prisma.vehicle.findUnique({
       where: { id: vehicleId },
@@ -89,7 +88,6 @@ export const updateVehicleStock = async (req: Request, res: Response) => {
     }
   }
 
-  // validate and replace stockItems
   if (Array.isArray(stockItems)) {
     for (const item of stockItems) {
       if (!item.itemId || !item.quantity) {
@@ -108,12 +106,10 @@ export const updateVehicleStock = async (req: Request, res: Response) => {
       }
     }
 
-    // Delete old stock items
     await prisma.vehicleStockItem.deleteMany({
       where: { vehicleStockId: vehicleStock.id },
     });
 
-    // Create new stock items
     await prisma.vehicleStockItem.createMany({
       data: stockItems.map((item) => ({
         itemId: item.itemId,
@@ -123,7 +119,6 @@ export const updateVehicleStock = async (req: Request, res: Response) => {
     });
   }
 
-  // Update vehicleStock fields
   const updatedStock = await prisma.vehicleStock.update({
     where: { id: Number(id) },
     data: {

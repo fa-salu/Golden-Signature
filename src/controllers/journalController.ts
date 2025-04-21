@@ -87,12 +87,10 @@ export const updateJournal = async (req: Request, res: Response) => {
     },
   });
 
-  // Delete existing particulars
   await prisma.journalParticular.deleteMany({
     where: { journalId },
   });
 
-  // Re-create particulars
   await prisma.journalParticular.createMany({
     data: particulars.map((item: any) => ({
       particular: item.particular,
@@ -101,7 +99,6 @@ export const updateJournal = async (req: Request, res: Response) => {
     })),
   });
 
-  // Fetch and return updated journal with particulars
   const result = await prisma.journal.findUnique({
     where: { id: journalId },
     include: {

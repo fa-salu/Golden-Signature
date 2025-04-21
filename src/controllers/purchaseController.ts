@@ -17,7 +17,7 @@ export const createPurchase = async (req: Request, res: Response) => {
     trxnId,
     notes,
     purchaseItems,
-    approvedBy,
+    bankId,
   } = req.body;
 
   if (
@@ -41,6 +41,10 @@ export const createPurchase = async (req: Request, res: Response) => {
     );
   }
 
+  if (paymentType === "bank" && !bankId) {
+    throw new CustomError("Bank ID is required for bank payments", 400);
+  }
+
   const existingInvoice = await prisma.purchase.findUnique({
     where: { invoiceNo },
   });
@@ -57,41 +61,79 @@ export const createPurchase = async (req: Request, res: Response) => {
     throw new CustomError("Party not found", 404);
   }
 
-  const newPurchase = await prisma.purchase.create({
-    data: {
-      invoiceNo,
-      date: new Date(date),
-      partyId,
-      discount,
-      taxAmount,
-      totalAmount,
-      grandTotal,
-      received,
-      paymentType,
-      trxnId,
-      notes,
-      approvedBy,
-      purchaseItems: {
-        create: purchaseItems.map((item) => ({
-          itemId: item.itemId,
-          quantity: item.quantity,
-          purchaseRate: item.purchaseRate,
-          tax: item.tax,
-          mrp: item.mrp,
-          totalAmount: item.totalAmount,
-        })),
+  const result = await prisma.$transaction(async (prismaClient) => {
+    const newPurchase = await prismaClient.purchase.create({
+      data: {
+        invoiceNo,
+        date: new Date(date),
+        partyId,
+        discount,
+        taxAmount,
+        totalAmount,
+        grandTotal,
+        received,
+        paymentType,
+        trxnId,
+        notes,
+        bankId,
+        purchaseItems: {
+          create: purchaseItems.map((item) => ({
+            itemId: item.itemId,
+            quantity: item.quantity,
+            purchaseRate: item.purchaseRate,
+            tax: item.tax,
+            mrp: item.mrp,
+            totalAmount: item.totalAmount,
+          })),
+        },
       },
-    },
-    include: {
-      purchaseItems: true,
-    },
+      include: {
+        purchaseItems: true,
+      },
+    });
+
+    if (paymentType === "cash") {
+      const company = await prismaClient.companyDetails.findFirst();
+
+      if (!company) {
+        throw new CustomError("Company record not found", 404);
+      }
+
+      await prismaClient.companyDetails.update({
+        where: { id: company.id },
+        data: {
+          openingBal: {
+            decrement: received,
+          },
+        },
+      });
+    } else if (paymentType === "bank") {
+      const bank = await prismaClient.bank.findUnique({
+        where: { id: bankId },
+      });
+
+      console.log("bank", bank);
+
+      if (!bank) {
+        throw new CustomError("Bank not found", 404);
+      }
+
+      await prismaClient.bank.update({
+        where: { id: bankId },
+        data: {
+          openingBal: {
+            decrement: received,
+          },
+        },
+      });
+    }
+
+    return newPurchase;
   });
 
   res
     .status(201)
-    .json(
-      new StandardResponse("Purchase created successfully", newPurchase, 201)
-    );
+    .json(new StandardResponse("Purchase created successfully", result, 201));
 };
 
 export const updatePurchase = async (req: Request, res: Response) => {
@@ -108,6 +150,7 @@ export const updatePurchase = async (req: Request, res: Response) => {
     paymentType,
     trxnId,
     notes,
+    bankId,
     purchaseItems,
   } = req.body;
 
@@ -138,6 +181,10 @@ export const updatePurchase = async (req: Request, res: Response) => {
 
   if (!existingPurchase) {
     throw new CustomError("Purchase not found", 404);
+  }
+
+  if (paymentType === "bank" && !bankId) {
+    throw new CustomError("Bank ID is required for BANK payment type", 400);
   }
 
   const invoiceExists = await prisma.purchase.findFirst({

@@ -129,7 +129,6 @@ export const updateMember = async (req: CustomRequest, res: Response) => {
     const existingUsername = await prisma.user.findUnique({
       where: { username },
     });
-    console.log("id", id);
     if (existingUsername && existingUsername.id !== id) {
       throw new CustomError("Username already exists", 400);
     }

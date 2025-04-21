@@ -22,6 +22,7 @@ import journalRoutes from "./routes/journalRoutes";
 import saleRoutes from "./routes/saleRoutes";
 import purchaseRoutes from "./routes/purchaseRoutes";
 import saleReturnRoutes from "./routes/saleReturnRoutes";
+import companyRoutes from "./routes/companyRoutes";
 
 dotenv.config();
 const app = express();
@@ -61,7 +62,8 @@ app.use(
   journalRoutes,
   saleRoutes,
   purchaseRoutes,
-  saleReturnRoutes
+  saleReturnRoutes,
+  companyRoutes
 );
 
 app.listen(PORT, () => {

@@ -47,6 +47,18 @@ const userSchema = z.object({
   salary: z.number().optional(),
 });
 
+const companySchema = z.object({
+  companyName: z.string().min(1, "Company name is required"),
+  email: z.string().email("Invalid email format"),
+  phoneNumber: z.string().min(10, "Phone number is required"),
+  address: z.string().min(1, "Address is required"),
+  gstNo: z.string().min(1, "GST number is required"),
+  openingBal: z.coerce
+    .number()
+    .nonnegative("Opening balance must be a number")
+    .default(0),
+});
+
 const routeSchema = z.object({
   routeName: z.string().min(1, "Route name is required"),
   asOfDate: z.coerce.date(),
@@ -250,10 +262,10 @@ const saleReturnSchema = z.object({
   ),
 });
 
-
 export {
   loginSchema,
   userSchema,
+  companySchema,
   routeSchema,
   vehicleSchema,
   partySchema,

@@ -1,0 +1,462 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  username          String    @unique
+  name              String
+  email             String    @unique
+  phoneNumber       String    @unique
+  password          String
+  emergencyNumber   String?
+  address           String?
+  role              Role
+  openingBal        Decimal?
+  companyOpeningBal Decimal?
+  image             String?
+  joiningDate       DateTime?
+  salary            Decimal?
+  status            Boolean
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("user")
+}
+
+enum Role {
+  admin
+  manager
+  accountant
+  salesman
+}
+
+model CompanyDetails {
+  id          Int      @id @default(autoincrement())
+  companyName String
+  email       String
+  phoneNumber String
+  address     String
+  gstNo       String
+  openingBal  Decimal  @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("companyDetails")
+}
+
+model Group {
+  id           Int       @id @default(autoincrement())
+  groupName    String
+  actAs        ActAsType
+  underGroupId Int?
+  underGroup   Group?    @relation("GroupParent", fields: [underGroupId], references: [id])
+  subGroups    Group[]   @relation("GroupParent") // Inverse relation (children)
+
+  Journal Journal[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("group")
+}
+
+enum ActAsType {
+  group
+  ledger
+  group_and_ledger
+}
+
+model Route {
+  id        Int       @id @default(autoincrement())
+  routeName String
+  location  String
+  asOfDate  DateTime
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Vehicle   Vehicle[]
+  Party     Party[]
+
+  @@map("route")
+}
+
+model Vehicle {
+  id              Int      @id @default(autoincrement())
+  vehicleNo       String   @unique
+  vehicleName     String
+  status          Boolean
+  asOfDate        DateTime
+  assignedRouteId Int
+  route           Route    @relation(fields: [assignedRouteId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  VehicleStock VehicleStock[]
+
+  @@map("vehicle")
+}
+
+model Party {
+  id              Int         @id @default(autoincrement())
+  partyName       String
+  phoneNumber     String      @unique
+  email           String      @unique
+  assignedRouteId Int
+  address         String
+  latitude        Decimal
+  longitude       Decimal
+  partyType       PartyType
+  routePriority   Int
+  asOfDate        DateTime
+  openingBal      Decimal
+  balanceType     BalanceType
+  status          Boolean
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  route      Route        @relation(fields: [assignedRouteId], references: [id])
+  Receipt    Receipt[]
+  Sale       Sale[]
+  Purchase   Purchase[]
+  SaleReturn SaleReturn[]
+
+  @@map("party")
+}
+
+enum PartyType {
+  sale
+  purchase
+  sale_and_purchase
+}
+
+enum BalanceType {
+  receive
+  pay
+}
+
+model Bank {
+  id          Int         @id @default(autoincrement())
+  accountName String
+  bankName    String
+  accountNo   String      @unique
+  openingBal  Decimal
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  Receipt     Receipt[]
+  Payment     Payment[]
+  BankEntry   BankEntry[]
+
+  @@map("bank")
+}
+
+model Receipt {
+  id          Int         @id @default(autoincrement())
+  receiptNo   String      @unique
+  date        DateTime
+  partyId     Int
+  bankId      Int?
+  amount      Decimal
+  paymentType PaymentType
+  trxnId      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  party Party @relation(fields: [partyId], references: [id])
+  bank  Bank? @relation(fields: [bankId], references: [id])
+
+  @@map("receipt")
+}
+
+enum PaymentType {
+  cash
+  bank
+}
+
+model Payment {
+  id          Int         @id @default(autoincrement())
+  paymentNo   String      @unique
+  date        DateTime
+  payeeType   PayeeType
+  payeeId     Int
+  amount      Decimal
+  paymentType PaymentType
+  bankId      Int?
+  bank        Bank?       @relation(fields: [bankId], references: [id])
+  trxnId      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("payment")
+}
+
+enum PayeeType {
+  staff
+  party
+  vehicle
+  group
+}
+
+model BankEntry {
+  id         Int        @id @default(autoincrement())
+  trxnNumber String     @unique
+  date       DateTime
+  bankId     Int
+  bank       Bank       @relation(fields: [bankId], references: [id])
+  amount     Decimal
+  amountType AmountType
+  trxnId     String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("bankEntry")
+}
+
+enum AmountType {
+  deposit
+  withdraw
+}
+
+model Tax {
+  id            Int      @id @default(autoincrement())
+  taxName       String   @unique
+  taxPercentage Decimal
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  Item          Item[]
+
+  @@map("tax")
+}
+
+model Category {
+  id           Int      @id @default(autoincrement())
+  categoryName String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  Item         Item[]
+
+  @@map("category")
+}
+
+model Item {
+  id           Int      @id @default(autoincrement())
+  itemCode     String   @unique
+  itemName     String
+  itemType     ItemType
+  categoryId   Int
+  category     Category @relation(fields: [categoryId], references: [id])
+  purchaseRate Decimal
+  saleRate     Decimal
+  mrp          Decimal
+  openingStock Int
+  minStock     Int
+  taxId        Int
+  tax          Tax      @relation(fields: [taxId], references: [id])
+  asOfDate     DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  VehicleStockItem VehicleStockItem[]
+  DamageStock      DamageStock[]
+  SaleItem         SaleItem[]
+  PurchaseItem     PurchaseItem[]
+  SaleReturnItem   SaleReturnItem[]
+
+  @@map("item")
+}
+
+enum ItemType {
+  product
+  service
+}
+
+model VehicleStock {
+  id        Int              @id @default(autoincrement())
+  stockNo   String           @unique
+  vehicleId Int
+  vehicle   Vehicle          @relation(fields: [vehicleId], references: [id])
+  date      DateTime
+  type      VehicleStockType
+
+  stockItems VehicleStockItem[]
+
+  @@map("vehicleStock")
+}
+
+model VehicleStockItem {
+  id             Int          @id @default(autoincrement())
+  itemId         Int
+  item           Item         @relation(fields: [itemId], references: [id])
+  quantity       Int
+  vehicleStockId Int
+  vehicleStock   VehicleStock @relation(fields: [vehicleStockId], references: [id])
+
+  @@map("vehicleStockItem")
+}
+
+enum VehicleStockType {
+  stock_in
+  stock_out
+}
+
+model DamageStock {
+  id       Int      @id @default(autoincrement())
+  damageId String   @unique
+  date     DateTime
+  itemId   Int
+  item     Item     @relation(fields: [itemId], references: [id])
+  quantity Int
+
+  @@map("damageStock")
+}
+
+model Journal {
+  id                 Int                @id @default(autoincrement())
+  date               DateTime
+  groupId            Int
+  group              Group              @relation(fields: [groupId], references: [id])
+  journalPaymentType JournalPaymentType
+
+  particulars JournalParticular[]
+
+  @@map("journal")
+}
+
+model JournalParticular {
+  id         Int     @id @default(autoincrement())
+  particular String
+  amount     Decimal
+  journalId  Int
+  journal    Journal @relation(fields: [journalId], references: [id])
+
+  @@map("journalParticular")
+}
+
+enum JournalPaymentType {
+  credit
+  debit
+}
+
+model Sale {
+  id          Int         @id @default(autoincrement())
+  invoiceNo   String      @unique
+  date        DateTime
+  partyId     Int
+  discount    Decimal
+  taxAmount   Decimal
+  totalAmount Decimal
+  grandTotal  Decimal
+  received    Decimal
+  paymentType PaymentType
+  trxnId      String?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  party     Party      @relation(fields: [partyId], references: [id])
+  saleItems SaleItem[]
+
+  @@map("sale")
+}
+
+model SaleItem {
+  id          Int      @id @default(autoincrement())
+  saleId      Int
+  itemId      Int
+  quantity    Int
+  saleRate    Decimal
+  tax         Decimal
+  mrp         Decimal
+  totalAmount Decimal
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  item Item @relation(fields: [itemId], references: [id])
+  sale Sale @relation(fields: [saleId], references: [id])
+
+  @@map("saleItem")
+}
+
+model Purchase {
+  id          Int         @id @default(autoincrement())
+  invoiceNo   String      @unique
+  date        DateTime
+  partyId     Int
+  discount    Decimal
+  taxAmount   Decimal
+  totalAmount Decimal
+  grandTotal  Decimal
+  received    Decimal
+  paymentType PaymentType
+  trxnId      String?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  party         Party          @relation(fields: [partyId], references: [id])
+  purchaseItems PurchaseItem[]
+
+  @@map("purchase")
+}
+
+model PurchaseItem {
+  id           Int      @id @default(autoincrement())
+  purchaseId   Int
+  itemId       Int
+  quantity     Int
+  purchaseRate Decimal
+  tax          Decimal
+  mrp          Decimal
+  totalAmount  Decimal
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  item     Item     @relation(fields: [itemId], references: [id])
+  purchase Purchase @relation(fields: [purchaseId], references: [id])
+
+  @@map("purchaseItem")
+}
+
+model SaleReturn {
+  id          Int         @id @default(autoincrement())
+  invoiceNo   String      @unique
+  date        DateTime
+  partyId     Int
+  taxAmount   Decimal
+  totalAmount Decimal
+  grandTotal  Decimal
+  received    Decimal
+  paymentType PaymentType
+  trxnId      String?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  party           Party            @relation(fields: [partyId], references: [id])
+  saleReturnItems SaleReturnItem[]
+
+  @@map("saleReturn")
+}
+
+model SaleReturnItem {
+  id           Int      @id @default(autoincrement())
+  saleReturnId Int
+  itemId       Int
+  quantity     Int
+  saleRate     Decimal
+  tax          Decimal
+  mrp          Decimal
+  totalAmount  Decimal
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  item       Item       @relation(fields: [itemId], references: [id])
+  saleReturn SaleReturn @relation(fields: [saleReturnId], references: [id])
+
+  @@map("saleReturnItem")
+}

@@ -11,7 +11,7 @@ const router = express.Router();
 router.post(
   "/members/add",
   verifyToken,
-  authorizeRoles("admin"),
+  // authorizeRoles("admin"),
   validateData(userSchema),
   errorCatch(addMember)
 );

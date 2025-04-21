@@ -194,13 +194,62 @@ const saleSchema = z.object({
     z.object({
       itemId: z.number(),
       quantity: z.number(),
-      saleRate:z.number(),
-      tax:z.number(),
-      mrp:z.number(),
-      totalAmount:z.number(),
+      saleRate: z.number(),
+      tax: z.number(),
+      mrp: z.number(),
+      totalAmount: z.number(),
     })
   ),
 });
+
+const purchaseSchema = z.object({
+  invoiceNo: z.string().min(1, "Receipt number is required"),
+  date: z.coerce.date(),
+  partyId: z.number().min(1, "Party is required"),
+  paymentType: z.enum(["cash", "bank"]),
+  trxnId: z.string().optional(),
+  discount: z.number(),
+  taxAmount: z.number(),
+  totalAmount: z.number(),
+  grandTotal: z.number(),
+  received: z.number(),
+  notes: z.string().optional(),
+  purchaseItems: z.array(
+    z.object({
+      itemId: z.number(),
+      quantity: z.number(),
+      purchaseRate: z.number(),
+      tax: z.number(),
+      mrp: z.number(),
+      totalAmount: z.number(),
+    })
+  ),
+});
+
+const saleReturnSchema = z.object({
+  invoiceNo: z.string().min(1, "Receipt number is required"),
+  date: z.coerce.date(),
+  partyId: z.number().min(1, "Party is required"),
+  paymentType: z.enum(["cash", "bank"]),
+  trxnId: z.string().optional(),
+  discount: z.number(),
+  taxAmount: z.number(),
+  totalAmount: z.number(),
+  grandTotal: z.number(),
+  received: z.number(),
+  notes: z.string().optional(),
+  saleReturnItems: z.array(
+    z.object({
+      itemId: z.number(),
+      quantity: z.number(),
+      saleRate: z.number(),
+      tax: z.number(),
+      mrp: z.number(),
+      totalAmount: z.number(),
+    })
+  ),
+});
+
 
 export {
   loginSchema,
@@ -220,4 +269,6 @@ export {
   damageStockSchema,
   journalSchema,
   saleSchema,
+  purchaseSchema,
+  saleReturnSchema,
 };

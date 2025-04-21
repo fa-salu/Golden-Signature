@@ -27,6 +27,9 @@ model User {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
+  Sale    Sale[]
+  Payment Payment[]
+
   @@map("user")
 }
 
@@ -187,9 +190,12 @@ model Payment {
   payeeType   PayeeType
   payeeId     Int
   amount      Decimal     @db.Decimal(10, 2)
+  isApproved  Boolean     @default(false)
+  approvedBy  Int
   paymentType PaymentType
   bankId      Int?
   bank        Bank?       @relation(fields: [bankId], references: [id])
+  user        User        @relation(fields: [approvedBy], references: [id])
   trxnId      String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -357,12 +363,15 @@ model Sale {
   grandTotal  Decimal     @db.Decimal(10, 2)
   received    Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
+  isApproved  Boolean     @default(false)
+  approvedBy  Int
   trxnId      String?
   notes       String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   party     Party      @relation(fields: [partyId], references: [id])
+  user      User       @relation(fields: [approvedBy], references: [id])
   saleItems SaleItem[]
 
   @@map("sale")

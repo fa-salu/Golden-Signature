@@ -22,15 +22,7 @@ export const addMember = async (req: Request, res: Response) => {
     salary,
   } = req.body;
 
-  if (
-    !username ||
-    !email ||
-    !phoneNumber ||
-    !password ||
-    !role ||
-    !joiningDate ||
-    !salary
-  ) {
+  if (!username || !email || !phoneNumber || !password || !role) {
     throw new CustomError("Please provide all required fields", 400);
   }
 

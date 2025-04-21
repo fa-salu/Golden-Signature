@@ -49,6 +49,25 @@ export const createReceipt = async (req: Request, res: Response) => {
     },
   });
 
+  if (paymentType === "cash") {
+    await prisma.companyDetails.updateMany({
+      data: {
+        openingBal: {
+          increment: parseFloat(amount),
+        },
+      },
+    });
+  } else if (paymentType === "bank") {
+    await prisma.bank.update({
+      where: { id: bankId },
+      data: {
+        openingBal: {
+          increment: parseFloat(amount),
+        },
+      },
+    });
+  }
+
   res
     .status(201)
     .json(
@@ -103,6 +122,25 @@ export const updateReceipt = async (req: Request, res: Response) => {
     }
   }
 
+  if (existingReceipt.paymentType === "cash") {
+    await prisma.companyDetails.updateMany({
+      data: {
+        openingBal: {
+          decrement: parseFloat(existingReceipt.amount.toString()),
+        },
+      },
+    });
+  } else if (existingReceipt.paymentType === "bank" && existingReceipt.bankId) {
+    await prisma.bank.update({
+      where: { id: existingReceipt.bankId },
+      data: {
+        openingBal: {
+          decrement: parseFloat(existingReceipt.amount.toString()),
+        },
+      },
+    });
+  }
+
   const updatedReceipt = await prisma.receipt.update({
     where: { id: parseInt(id) },
     data: {
@@ -115,6 +153,25 @@ export const updateReceipt = async (req: Request, res: Response) => {
       trxnId: paymentType === "bank" ? trxnId : null,
     },
   });
+
+  if (paymentType === "cash") {
+    await prisma.companyDetails.updateMany({
+      data: {
+        openingBal: {
+          increment: parseFloat(amount),
+        },
+      },
+    });
+  } else if (paymentType === "bank") {
+    await prisma.bank.update({
+      where: { id: bankId },
+      data: {
+        openingBal: {
+          increment: parseFloat(amount),
+        },
+      },
+    });
+  }
 
   res
     .status(200)

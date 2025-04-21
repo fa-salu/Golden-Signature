@@ -17,7 +17,7 @@ export const createSale = async (req: Request, res: Response) => {
     trxnId,
     notes,
     saleItems,
-    approvedBy,
+    bankId,
   } = req.body;
 
   if (
@@ -30,7 +30,6 @@ export const createSale = async (req: Request, res: Response) => {
     !grandTotal ||
     !received ||
     !paymentType ||
-    !trxnId ||
     !saleItems ||
     !Array.isArray(saleItems) ||
     saleItems.length === 0
@@ -67,7 +66,7 @@ export const createSale = async (req: Request, res: Response) => {
       paymentType,
       trxnId,
       notes,
-      approvedBy,
+      bankId,
       saleItems: {
         create: saleItems.map((item) => ({
           itemId: item.itemId,
@@ -104,6 +103,9 @@ export const updateSale = async (req: Request, res: Response) => {
     trxnId,
     notes,
     saleItems,
+    bankId,
+    isApproved,
+    approvedBy,
   } = req.body;
 
   if (
@@ -116,7 +118,6 @@ export const updateSale = async (req: Request, res: Response) => {
     !grandTotal ||
     !received ||
     !paymentType ||
-    !trxnId ||
     !saleItems ||
     !Array.isArray(saleItems) ||
     saleItems.length === 0
@@ -171,6 +172,9 @@ export const updateSale = async (req: Request, res: Response) => {
       paymentType,
       trxnId,
       notes,
+      bankId,
+      isApproved,
+      approvedBy,
       saleItems: {
         create: saleItems.map((item) => ({
           itemId: item.itemId,
@@ -187,7 +191,50 @@ export const updateSale = async (req: Request, res: Response) => {
     },
   });
 
+  if (isApproved && approvedBy) {
+    if (paymentType === "cash") {
+      await prisma.companyDetails.updateMany({
+        data: {
+          openingBal: {
+            increment: received,
+          },
+        },
+      });
+    } else if (paymentType === "bank" && bankId) {
+      await prisma.bank.update({
+        where: { id: bankId },
+        data: {
+          openingBal: {
+            increment: received,
+          },
+        },
+      });
+    }
+  }
+
   res
     .status(200)
     .json(new StandardResponse("Sale updated successfully", updatedSale, 200));
+};
+
+export const getSaleById = async (req: Request, res: Response) => {
+  const saleId = parseInt(req.params.id);
+
+  const sale = await prisma.sale.findUnique({
+    where: { id: saleId },
+    include: {
+      saleItems: true,
+      party: true,
+      bank: true,
+      user: true,
+    },
+  });
+
+  if (!sale) {
+    throw new CustomError("Sale not found", 404);
+  }
+
+  res
+    .status(200)
+    .json(new StandardResponse("Sale fetched successfully", sale, 200));
 };

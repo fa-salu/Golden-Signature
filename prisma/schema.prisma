@@ -156,6 +156,7 @@ model Bank {
   Payment     Payment[]
   BankEntry   BankEntry[]
   Purchase    Purchase[]
+  Sale        Sale[]
 
   @@map("bank")
 }
@@ -190,7 +191,6 @@ model Payment {
   payeeType   PayeeType
   payeeId     Int
   amount      Decimal     @db.Decimal(10, 2)
-  isApproved  Boolean     @default(false)
   paymentType PaymentType
   bankId      Int?
   bank        Bank?       @relation(fields: [bankId], references: [id])
@@ -362,14 +362,16 @@ model Sale {
   received    Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
   isApproved  Boolean     @default(false)
-  approvedBy  Int
+  approvedBy  Int?
   trxnId      String?
   notes       String?
+  bankId      Int?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   party     Party      @relation(fields: [partyId], references: [id])
-  user      User       @relation(fields: [approvedBy], references: [id])
+  user      User?      @relation(fields: [approvedBy], references: [id])
+  bank      Bank?      @relation(fields: [bankId], references: [id])
   saleItems SaleItem[]
 
   @@map("sale")
@@ -388,7 +390,7 @@ model SaleItem {
   updatedAt   DateTime @updatedAt
 
   item Item @relation(fields: [itemId], references: [id])
-  sale Sale @relation(fields: [saleId], references: [id])
+  sale Sale @relation(fields: [saleId], references: [id], onDelete: Cascade)
 
   @@map("saleItem")
 }

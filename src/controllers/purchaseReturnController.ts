@@ -3,7 +3,7 @@ import { CustomError } from "../utils/error/customError";
 import prisma from "../config/db";
 import { StandardResponse } from "../utils/standardResponse";
 
-export const createSaleReturn = async (req: Request, res: Response) => {
+export const createPurchaseReturn = async (req: Request, res: Response) => {
   const {
     invoiceNo,
     date,
@@ -15,7 +15,7 @@ export const createSaleReturn = async (req: Request, res: Response) => {
     paymentType,
     trxnId,
     notes,
-    saleReturnItems,
+    purchaseReturnItems,
   } = req.body;
 
   if (
@@ -27,17 +27,17 @@ export const createSaleReturn = async (req: Request, res: Response) => {
     !grandTotal ||
     !received ||
     !paymentType ||
-    !saleReturnItems ||
-    !Array.isArray(saleReturnItems) ||
-    saleReturnItems.length === 0
+    !purchaseReturnItems ||
+    !Array.isArray(purchaseReturnItems) ||
+    purchaseReturnItems.length === 0
   ) {
     throw new CustomError(
-      "All fields are required including sale return items",
+      "All fields are required including purchase return items",
       400
     );
   }
 
-  const existingInvoice = await prisma.saleReturn.findUnique({
+  const existingInvoice = await prisma.purchaseReturn.findUnique({
     where: { invoiceNo },
   });
 
@@ -53,7 +53,7 @@ export const createSaleReturn = async (req: Request, res: Response) => {
     throw new CustomError("Party not found", 404);
   }
 
-  const newSaleReturn = await prisma.saleReturn.create({
+  const newPurchaseReturn = await prisma.purchaseReturn.create({
     data: {
       invoiceNo,
       date: new Date(date),
@@ -65,11 +65,11 @@ export const createSaleReturn = async (req: Request, res: Response) => {
       paymentType,
       trxnId,
       notes,
-      saleReturnItems: {
-        create: saleReturnItems.map((item) => ({
+      purchaseReturnItems: {
+        create: purchaseReturnItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,
-          saleRate: item.saleRate,
+          purchaseRate: item.purchaseRate,
           tax: item.tax,
           mrp: item.mrp,
           totalAmount: item.totalAmount,
@@ -77,7 +77,7 @@ export const createSaleReturn = async (req: Request, res: Response) => {
       },
     },
     include: {
-      saleReturnItems: true,
+      purchaseReturnItems: true,
     },
   });
 
@@ -85,15 +85,15 @@ export const createSaleReturn = async (req: Request, res: Response) => {
     .status(201)
     .json(
       new StandardResponse(
-        "Sale Return created successfully",
-        newSaleReturn,
+        "Purchase return created successfully",
+        newPurchaseReturn,
         201
       )
     );
 };
 
-export const updateSaleReturn = async (req: Request, res: Response) => {
-  const saleReturnId = parseInt(req.params.id);
+export const updatePurchaseReturn = async (req: Request, res: Response) => {
+  const { id: purchaseReturnId } = req.params;
   const {
     invoiceNo,
     date,
@@ -105,7 +105,7 @@ export const updateSaleReturn = async (req: Request, res: Response) => {
     paymentType,
     trxnId,
     notes,
-    saleReturnItems,
+    purchaseReturnItems,
   } = req.body;
 
   if (
@@ -117,24 +117,29 @@ export const updateSaleReturn = async (req: Request, res: Response) => {
     !grandTotal ||
     !received ||
     !paymentType ||
-    !saleReturnItems ||
-    !Array.isArray(saleReturnItems) ||
-    saleReturnItems.length === 0
+    !purchaseReturnItems ||
+    !Array.isArray(purchaseReturnItems) ||
+    purchaseReturnItems.length === 0
   ) {
-    throw new CustomError(
-      "All fields are required including sale return items",
-      400
-    );
+    throw new CustomError("All fields are required including items", 400);
   }
 
-  const existingInvoice = await prisma.saleReturn.findFirst({
+  const existingPurchaseReturn = await prisma.purchaseReturn.findUnique({
+    where: { id: Number(purchaseReturnId) },
+  });
+
+  if (!existingPurchaseReturn) {
+    throw new CustomError("Purchase Return not found", 404);
+  }
+
+  const invoiceExists = await prisma.purchaseReturn.findFirst({
     where: {
       invoiceNo,
-      NOT: { id: saleReturnId },
+      NOT: { id: Number(purchaseReturnId) },
     },
   });
 
-  if (existingInvoice) {
+  if (invoiceExists) {
     throw new CustomError("Invoice number already exists", 400);
   }
 
@@ -146,21 +151,12 @@ export const updateSaleReturn = async (req: Request, res: Response) => {
     throw new CustomError("Party not found", 404);
   }
 
-  for (const item of saleReturnItems) {
-    const itemExists = await prisma.item.findUnique({
-      where: { id: item.itemId },
-    });
-    if (!itemExists) {
-      throw new CustomError(`Item not found: ID ${item.itemId}`, 404);
-    }
-  }
-
-  await prisma.saleReturnItem.deleteMany({
-    where: { saleReturnId },
+  await prisma.purchaseReturnItem.deleteMany({
+    where: { purchaseReturnId: Number(purchaseReturnId) },
   });
 
-  const updatedSaleReturn = await prisma.saleReturn.update({
-    where: { id: saleReturnId },
+  const updatedPurchaseReturn = await prisma.purchaseReturn.update({
+    where: { id: Number(purchaseReturnId) },
     data: {
       invoiceNo,
       date: new Date(date),
@@ -172,11 +168,11 @@ export const updateSaleReturn = async (req: Request, res: Response) => {
       paymentType,
       trxnId,
       notes,
-      saleReturnItems: {
-        create: saleReturnItems.map((item) => ({
+      purchaseReturnItems: {
+        create: purchaseReturnItems.map((item) => ({
           itemId: item.itemId,
           quantity: item.quantity,
-          saleRate: item.saleRate,
+          purchaseRate: item.purchaseRate,
           tax: item.tax,
           mrp: item.mrp,
           totalAmount: item.totalAmount,
@@ -184,7 +180,7 @@ export const updateSaleReturn = async (req: Request, res: Response) => {
       },
     },
     include: {
-      saleReturnItems: true,
+      purchaseReturnItems: true,
     },
   });
 
@@ -192,8 +188,8 @@ export const updateSaleReturn = async (req: Request, res: Response) => {
     .status(200)
     .json(
       new StandardResponse(
-        "Sale return updated successfully",
-        updatedSaleReturn,
+        "Purchase Return updated successfully",
+        updatedPurchaseReturn,
         200
       )
     );

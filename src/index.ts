@@ -20,6 +20,7 @@ import vehicleStockRoutes from "./routes/vehicleStockRoutes";
 import damageStockRoutes from "./routes/damageStockRoutes";
 import journalRoutes from "./routes/journalRoutes";
 import saleRoutes from "./routes/saleRoutes";
+import purchaseReturnRoutes from "./routes/purchaseReturnRoutes";
 import purchaseRoutes from "./routes/purchaseRoutes";
 import saleReturnRoutes from "./routes/saleReturnRoutes";
 import companyRoutes from "./routes/companyRoutes";
@@ -61,6 +62,7 @@ app.use(
   damageStockRoutes,
   journalRoutes,
   saleRoutes,
+  purchaseReturnRoutes,
   purchaseRoutes,
   saleReturnRoutes,
   companyRoutes

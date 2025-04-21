@@ -17,6 +17,7 @@ export const createPurchase = async (req: Request, res: Response) => {
     trxnId,
     notes,
     purchaseItems,
+    approvedBy,
   } = req.body;
 
   if (
@@ -69,6 +70,7 @@ export const createPurchase = async (req: Request, res: Response) => {
       paymentType,
       trxnId,
       notes,
+      approvedBy,
       purchaseItems: {
         create: purchaseItems.map((item) => ({
           itemId: item.itemId,

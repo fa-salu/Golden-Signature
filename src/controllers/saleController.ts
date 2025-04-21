@@ -17,6 +17,7 @@ export const createSale = async (req: Request, res: Response) => {
     trxnId,
     notes,
     saleItems,
+    approvedBy,
   } = req.body;
 
   if (
@@ -66,6 +67,7 @@ export const createSale = async (req: Request, res: Response) => {
       paymentType,
       trxnId,
       notes,
+      approvedBy,
       saleItems: {
         create: saleItems.map((item) => ({
           itemId: item.itemId,

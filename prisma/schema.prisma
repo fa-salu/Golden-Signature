@@ -18,11 +18,11 @@ model User {
   emergencyNumber   String?
   address           String?
   role              Role
-  openingBal        Decimal?
-  companyOpeningBal Decimal?
+  openingBal        Decimal?  @db.Decimal(10, 2)
+  companyOpeningBal Decimal?  @db.Decimal(10, 2)
   image             String?
   joiningDate       DateTime?
-  salary            Decimal?
+  salary            Decimal?  @db.Decimal(10, 2)
   status            Boolean
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -44,7 +44,7 @@ model CompanyDetails {
   phoneNumber String
   address     String
   gstNo       String
-  openingBal  Decimal  @default(0)
+  openingBal  Decimal  @default(0) @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -114,7 +114,7 @@ model Party {
   partyType       PartyType
   routePriority   Int
   asOfDate        DateTime
-  openingBal      Decimal
+  openingBal      Decimal     @db.Decimal(10, 2)
   balanceType     BalanceType
   status          Boolean
   createdAt       DateTime    @default(now())
@@ -126,7 +126,7 @@ model Party {
   Purchase       Purchase[]
   SaleReturn     SaleReturn[]
   PurchaseReturn PurchaseReturn[]
-  Estimate Estimate[]
+  Estimate       Estimate[]
 
   @@map("party")
 }
@@ -147,7 +147,7 @@ model Bank {
   accountName String
   bankName    String
   accountNo   String      @unique
-  openingBal  Decimal
+  openingBal  Decimal     @db.Decimal(10, 2)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   Receipt     Receipt[]
@@ -163,7 +163,7 @@ model Receipt {
   date        DateTime
   partyId     Int
   bankId      Int?
-  amount      Decimal
+  amount      Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
   trxnId      String?
   createdAt   DateTime    @default(now())
@@ -186,7 +186,7 @@ model Payment {
   date        DateTime
   payeeType   PayeeType
   payeeId     Int
-  amount      Decimal
+  amount      Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
   bankId      Int?
   bank        Bank?       @relation(fields: [bankId], references: [id])
@@ -210,7 +210,7 @@ model BankEntry {
   date       DateTime
   bankId     Int
   bank       Bank       @relation(fields: [bankId], references: [id])
-  amount     Decimal
+  amount     Decimal    @db.Decimal(10, 2)
   amountType AmountType
   trxnId     String
   createdAt  DateTime   @default(now())
@@ -227,7 +227,7 @@ enum AmountType {
 model Tax {
   id            Int      @id @default(autoincrement())
   taxName       String   @unique
-  taxPercentage Decimal
+  taxPercentage Decimal  @db.Decimal(10, 2)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   Item          Item[]
@@ -252,9 +252,9 @@ model Item {
   itemType     ItemType
   categoryId   Int
   category     Category @relation(fields: [categoryId], references: [id])
-  purchaseRate Decimal
-  saleRate     Decimal
-  mrp          Decimal
+  purchaseRate Decimal  @db.Decimal(10, 2)
+  saleRate     Decimal  @db.Decimal(10, 2)
+  mrp          Decimal  @db.Decimal(10, 2)
   openingStock Int
   minStock     Int
   taxId        Int
@@ -269,7 +269,7 @@ model Item {
   PurchaseItem       PurchaseItem[]
   SaleReturnItem     SaleReturnItem[]
   PurchaseReturnItem PurchaseReturnItem[]
-  EstimateItem EstimateItem[]
+  EstimateItem       EstimateItem[]
 
   @@map("item")
 }
@@ -334,7 +334,7 @@ model Journal {
 model JournalParticular {
   id         Int     @id @default(autoincrement())
   particular String
-  amount     Decimal
+  amount     Decimal @db.Decimal(10, 2)
   journalId  Int
   journal    Journal @relation(fields: [journalId], references: [id])
 
@@ -351,11 +351,11 @@ model Sale {
   invoiceNo   String      @unique
   date        DateTime
   partyId     Int
-  discount    Decimal
-  taxAmount   Decimal
-  totalAmount Decimal
-  grandTotal  Decimal
-  received    Decimal
+  discount    Decimal     @db.Decimal(10, 2)
+  taxAmount   Decimal     @db.Decimal(10, 2)
+  totalAmount Decimal     @db.Decimal(10, 2)
+  grandTotal  Decimal     @db.Decimal(10, 2)
+  received    Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
   trxnId      String?
   notes       String?
@@ -373,10 +373,10 @@ model SaleItem {
   saleId      Int
   itemId      Int
   quantity    Int
-  saleRate    Decimal
-  tax         Decimal
-  mrp         Decimal
-  totalAmount Decimal
+  saleRate    Decimal  @db.Decimal(10, 2)
+  tax         Decimal  @db.Decimal(10, 2)
+  mrp         Decimal  @db.Decimal(10, 2)
+  totalAmount Decimal  @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -391,11 +391,11 @@ model Purchase {
   invoiceNo   String      @unique
   date        DateTime
   partyId     Int
-  discount    Decimal
-  taxAmount   Decimal
-  totalAmount Decimal
-  grandTotal  Decimal
-  received    Decimal
+  discount    Decimal     @db.Decimal(10, 2)
+  taxAmount   Decimal     @db.Decimal(10, 2)
+  totalAmount Decimal     @db.Decimal(10, 2)
+  grandTotal  Decimal     @db.Decimal(10, 2)
+  received    Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
   trxnId      String?
   notes       String?
@@ -413,10 +413,10 @@ model PurchaseItem {
   purchaseId   Int
   itemId       Int
   quantity     Int
-  purchaseRate Decimal
-  tax          Decimal
-  mrp          Decimal
-  totalAmount  Decimal
+  purchaseRate Decimal  @db.Decimal(10, 2)
+  tax          Decimal  @db.Decimal(10, 2)
+  mrp          Decimal  @db.Decimal(10, 2)
+  totalAmount  Decimal  @db.Decimal(10, 2)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -431,10 +431,10 @@ model SaleReturn {
   invoiceNo   String      @unique
   date        DateTime
   partyId     Int
-  taxAmount   Decimal
-  totalAmount Decimal
-  grandTotal  Decimal
-  received    Decimal
+  taxAmount   Decimal     @db.Decimal(10, 2)
+  totalAmount Decimal     @db.Decimal(10, 2)
+  grandTotal  Decimal     @db.Decimal(10, 2)
+  received    Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
   trxnId      String?
   notes       String?
@@ -452,10 +452,10 @@ model SaleReturnItem {
   saleReturnId Int
   itemId       Int
   quantity     Int
-  saleRate     Decimal
-  tax          Decimal
-  mrp          Decimal
-  totalAmount  Decimal
+  saleRate     Decimal  @db.Decimal(10, 2)
+  tax          Decimal  @db.Decimal(10, 2)
+  mrp          Decimal  @db.Decimal(10, 2)
+  totalAmount  Decimal  @db.Decimal(10, 2)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -470,10 +470,10 @@ model PurchaseReturn {
   invoiceNo   String      @unique
   date        DateTime
   partyId     Int
-  taxAmount   Decimal
-  totalAmount Decimal
-  grandTotal  Decimal
-  received    Decimal
+  taxAmount   Decimal     @db.Decimal(10, 2)
+  totalAmount Decimal     @db.Decimal(10, 2)
+  grandTotal  Decimal     @db.Decimal(10, 2)
+  received    Decimal     @db.Decimal(10, 2)
   paymentType PaymentType
   trxnId      String?
   notes       String?
@@ -491,10 +491,10 @@ model PurchaseReturnItem {
   purchaseReturnId Int
   itemId           Int
   quantity         Int
-  purchaseRate     Decimal
-  tax              Decimal
-  mrp              Decimal
-  totalAmount      Decimal
+  purchaseRate     Decimal  @db.Decimal(10, 2)
+  tax              Decimal  @db.Decimal(10, 2)
+  mrp              Decimal  @db.Decimal(10, 2)
+  totalAmount      Decimal  @db.Decimal(10, 2)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -505,19 +505,19 @@ model PurchaseReturnItem {
 }
 
 model Estimate {
-  id          Int           @id @default(autoincrement())
-  invoiceNo   String        @unique
+  id          Int      @id @default(autoincrement())
+  invoiceNo   String   @unique
   date        DateTime
   partyId     Int
-  discount    Decimal
-  taxAmount   Decimal
-  totalAmount Decimal
-  grandTotal  Decimal
+  discount    Decimal  @db.Decimal(10, 2)
+  taxAmount   Decimal  @db.Decimal(10, 2)
+  totalAmount Decimal  @db.Decimal(10, 2)
+  grandTotal  Decimal  @db.Decimal(10, 2)
   notes       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  party        Party          @relation(fields: [partyId], references: [id])
+  party         Party          @relation(fields: [partyId], references: [id])
   estimateItems EstimateItem[]
 
   @@map("estimate")
@@ -528,10 +528,10 @@ model EstimateItem {
   estimateId  Int
   itemId      Int
   quantity    Int
-  saleRate    Decimal
-  tax         Decimal
-  mrp         Decimal
-  totalAmount Decimal
+  saleRate    Decimal  @db.Decimal(10, 2)
+  tax         Decimal  @db.Decimal(10, 2)
+  mrp         Decimal  @db.Decimal(10, 2)
+  totalAmount Decimal  @db.Decimal(10, 2)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -540,4 +540,3 @@ model EstimateItem {
 
   @@map("estimateItem")
 }
-

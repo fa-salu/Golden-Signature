@@ -112,8 +112,6 @@ export const createPurchase = async (req: Request, res: Response) => {
         where: { id: bankId },
       });
 
-      console.log("bank", bank);
-
       if (!bank) {
         throw new CustomError("Bank not found", 404);
       }
@@ -187,15 +185,19 @@ export const updatePurchase = async (req: Request, res: Response) => {
     throw new CustomError("Bank ID is required for BANK payment type", 400);
   }
 
-  const invoiceExists = await prisma.purchase.findFirst({
-    where: {
-      invoiceNo,
-      NOT: { id: purchaseId },
-    },
-  });
+  const trimmedInvoiceNo = invoiceNo.trim();
 
-  if (invoiceExists) {
-    throw new CustomError("Invoice number already exists", 400);
+  if (trimmedInvoiceNo !== existingPurchase.invoiceNo.trim()) {
+    const invoiceExists = await prisma.purchase.findFirst({
+      where: {
+        invoiceNo: trimmedInvoiceNo,
+        NOT: { id: purchaseId },
+      },
+    });
+
+    if (invoiceExists) {
+      throw new CustomError("Invoice number already exists", 400);
+    }
   }
 
   const party = await prisma.party.findUnique({
@@ -206,47 +208,100 @@ export const updatePurchase = async (req: Request, res: Response) => {
     throw new CustomError("Party not found", 404);
   }
 
-  await prisma.purchaseItem.deleteMany({
-    where: { purchaseId },
-  });
+  const result = await prisma.$transaction(async (tx) => {
+    if (existingPurchase.paymentType === "cash") {
+      const company = await tx.companyDetails.findFirst();
+      if (!company) throw new CustomError("Company not found", 404);
+      await tx.companyDetails.update({
+        where: { id: company.id },
+        data: {
+          openingBal: {
+            increment: existingPurchase.received,
+          },
+        },
+      });
+    } else if (existingPurchase.paymentType === "bank") {
+      if (!existingPurchase.bankId)
+        throw new CustomError("Previous bankId missing", 400);
+      const prevBank = await tx.bank.findUnique({
+        where: { id: existingPurchase.bankId },
+      });
+      if (!prevBank) throw new CustomError("Previous bank not found", 404);
+      await tx.bank.update({
+        where: { id: prevBank.id },
+        data: {
+          openingBal: {
+            increment: existingPurchase.received,
+          },
+        },
+      });
+    }
 
-  const updatedPurchase = await prisma.purchase.update({
-    where: { id: purchaseId },
-    data: {
-      invoiceNo,
-      date: new Date(date),
-      partyId,
-      discount,
-      taxAmount,
-      totalAmount,
-      grandTotal,
-      received,
-      paymentType,
-      trxnId,
-      notes,
-      purchaseItems: {
-        create: purchaseItems.map((item) => ({
-          itemId: item.itemId,
-          quantity: item.quantity,
-          purchaseRate: item.purchaseRate,
-          tax: item.tax,
-          mrp: item.mrp,
-          totalAmount: item.totalAmount,
-        })),
+    await tx.purchaseItem.deleteMany({
+      where: { purchaseId },
+    });
+
+    const updatedPurchase = await tx.purchase.update({
+      where: { id: purchaseId },
+      data: {
+        invoiceNo: trimmedInvoiceNo,
+        date: new Date(date),
+        partyId,
+        discount,
+        taxAmount,
+        totalAmount,
+        grandTotal,
+        received,
+        paymentType,
+        trxnId,
+        notes,
+        bankId,
+        purchaseItems: {
+          create: purchaseItems.map((item) => ({
+            itemId: item.itemId,
+            quantity: item.quantity,
+            purchaseRate: item.purchaseRate,
+            tax: item.tax,
+            mrp: item.mrp,
+            totalAmount: item.totalAmount,
+          })),
+        },
       },
-    },
-    include: {
-      purchaseItems: true,
-    },
+      include: {
+        purchaseItems: true,
+      },
+    });
+
+    if (paymentType === "cash") {
+      const company = await tx.companyDetails.findFirst();
+      if (!company) throw new CustomError("Company not found", 404);
+      await tx.companyDetails.update({
+        where: { id: company.id },
+        data: {
+          openingBal: {
+            decrement: received,
+          },
+        },
+      });
+    } else if (paymentType === "bank") {
+      const currentBank = await tx.bank.findUnique({
+        where: { id: bankId },
+      });
+      if (!currentBank) throw new CustomError("Bank not found", 404);
+      await tx.bank.update({
+        where: { id: bankId },
+        data: {
+          openingBal: {
+            decrement: received,
+          },
+        },
+      });
+    }
+
+    return updatedPurchase;
   });
 
   res
     .status(200)
-    .json(
-      new StandardResponse(
-        "Purchase updated successfully",
-        updatedPurchase,
-        200
-      )
-    );
+    .json(new StandardResponse("Purchase updated successfully", result, 200));
 };

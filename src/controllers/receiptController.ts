@@ -179,3 +179,66 @@ export const updateReceipt = async (req: Request, res: Response) => {
       new StandardResponse("Receipt updated successfully", updatedReceipt, 200)
     );
 };
+
+export const getAllReceipts = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  const skip = (page - 1) * limit;
+
+  const receipts = await prisma.receipt.findMany({
+    skip,
+    take: limit,
+    include: {
+      party: true,
+      bank: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  res
+    .status(200)
+    .json(new StandardResponse("Receipts fetched successfully", receipts, 200));
+};
+
+export const getReceiptById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const receipt = await prisma.receipt.findUnique({
+    where: { id: Number(id) },
+    include: {
+      party: true,
+      bank: true,
+    },
+  });
+
+  if (!receipt) {
+    res.status(404).json(new StandardResponse("Receipt not found", null, 404));
+  }
+
+  res
+    .status(200)
+    .json(new StandardResponse("Receipt fetched successfully", receipt, 200));
+};
+
+export const deleteReceipt = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const existing = await prisma.receipt.findUnique({
+    where: { id: Number(id) },
+  });
+
+  if (!existing) {
+    res.status(404).json(new StandardResponse("Receipt not found", null, 404));
+  }
+
+  await prisma.receipt.delete({
+    where: { id: Number(id) },
+  });
+
+  res
+    .status(200)
+    .json(new StandardResponse("Receipt deleted successfully", null, 200));
+};

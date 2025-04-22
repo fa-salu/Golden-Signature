@@ -4,9 +4,16 @@ import { authorizeRoles } from "../middlewares/roleMiddleware";
 import { validateData } from "../middlewares/zodValidation";
 import { saleSchema } from "../utils/zodSchema";
 import { errorCatch } from "../utils/error/error.Catch";
-import { createSale, getSaleById, updateSale } from "../controllers/saleController";
+import { createSale, deleteSaleById, getAllSales, getSaleById, updateSale } from "../controllers/saleController";
 
 const router = express.Router();
+
+router.get(
+  "/sale",
+  verifyToken,
+  authorizeRoles("admin"),
+  errorCatch(getAllSales)
+);
 
 router.get(
   "/sale/:id",
@@ -29,6 +36,13 @@ router.put(
   authorizeRoles("admin"),
   validateData(saleSchema),
   errorCatch(updateSale)
+);
+
+router.delete(
+  "/sale/:id",
+  verifyToken,
+  authorizeRoles("admin"),
+  errorCatch(deleteSaleById)
 );
 
 export default router;

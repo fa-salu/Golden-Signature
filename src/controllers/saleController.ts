@@ -223,10 +223,14 @@ export const getSaleById = async (req: Request, res: Response) => {
   const sale = await prisma.sale.findUnique({
     where: { id: saleId },
     include: {
-      saleItems: true,
       party: true,
       bank: true,
       user: true,
+      saleItems: {
+        include: {
+          item: true,
+        },
+      },
     },
   });
 
@@ -237,4 +241,53 @@ export const getSaleById = async (req: Request, res: Response) => {
   res
     .status(200)
     .json(new StandardResponse("Sale fetched successfully", sale, 200));
+};
+
+export const getAllSales = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
+  const skip = (page - 1) * limit;
+
+  const sales = await prisma.sale.findMany({
+    skip,
+    take: limit,
+    include: {
+      party: true,
+      bank: true,
+      user: true,
+      saleItems: {
+        include: {
+          item: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  res
+    .status(200)
+    .json(new StandardResponse("Sales fetched successfully", sales, 200));
+};
+
+export const deleteSaleById = async (req: Request, res: Response) => {
+  const saleId = parseInt(req.params.id);
+
+  const existingSale = await prisma.sale.findUnique({
+    where: { id: saleId },
+  });
+
+  if (!existingSale) {
+    throw new CustomError("Sale not found", 404);
+  }
+
+  await prisma.sale.delete({
+    where: { id: saleId },
+  });
+
+  res
+    .status(200)
+    .json(new StandardResponse("Sale deleted successfully", null, 200));
 };
